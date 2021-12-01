@@ -1,0 +1,124 @@
+{
+
+  # SSL
+  email {$ADMIN_EMAIL}
+  acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+
+  # Enable to see header set by upstream
+  # debug
+}
+
+{$DOMAIN} {
+
+  # Static content
+  root * /var/www/html
+  file_server
+
+  # PHP fast cgi
+  php_fastcgi app:9000 {
+    env front_controller_active true
+  }
+
+  # Redirects for DAV apps
+  redir /.well-known/carddav /remote.php/carddav 301
+  redir /.well-known/caldav /remote.php/caldav 301
+
+  respond /.well-known/acme-challenge 404
+  respond /.well-known/pki-validation 404
+
+  # redir /.well-known/* /index.php/.well-known/webfinger 301
+  # redir /.well-known/nodeinfo /index.php/.well-known/nodeinfo 301
+  redir /.well-known/* /index.php{uri} 301
+
+  # Headers
+  header {
+    # If staging acme_ca is enabled, this needs to be commented out!
+    # Otherwise, it is not possible to add exception
+    Strict-Transport-Security "max-age=15768000; includeSubDomains; preload"
+
+    # More security hardening headers
+    Referrer-Policy                   "no-referrer"
+    X-Content-Type-Options            "nosniff"
+    X-Download-Options                "noopen"
+    X-Frame-Options                   "SAMEORIGIN"
+    X-Permitted-Cross-Domain-Policies "none"
+    X-Robots-Tag                      "none"
+    X-XSS-Protection                  "1; mode=block"
+    Permissions-Policy                "interest-cohort=()"
+
+    # Remove X-Powered-By header, which is an information leak
+    -X-Powered-By
+
+    # Replace http with https in any Location header
+    Location http:// https://
+  }
+
+  # Cache control
+  @static {
+    file
+    path *.css *.js *.svg *.gif
+  }
+
+  header @static {
+    Cache-Control "max-age=360"
+  }
+
+  @fonts {
+    path /core/fonts
+  }
+
+  header @fonts {
+    Cache-Control "max-age=604800"
+  }
+
+  # gzip encoding
+  encode {
+    gzip 4
+    minimum_length 256
+
+    match {
+      header Content-Type text/*
+      header Content-Type application/json*
+      header Content-Type application/javascript*
+      header Content-Type application/xhtml+xml*
+      header Content-Type application/atom+xml*
+      header Content-Type application/rss+xml*
+      header Content-Type image/svg+xml*
+      header Content-Type application/ld+json*
+      header Content-Type application/manifest+json*
+      header Content-Type application/vnd.geo+json*
+      header Content-Type application/vnd.ms-fontobject*
+      header Content-Type application/x-font-ttf*
+      header Content-Type application/x-web-app-manifest+json*
+      header Content-Type application/xml*
+      header Content-Type font/opentype*
+      header Content-Type image/bmp*
+      header Content-Type image/x-icon*
+      header Content-Type text/cache-manifest*
+    }
+  }
+
+  # .htaccess / data / config / ... shouldn't be accessible from outside
+  @forbidden {
+    path    /build/*
+    path    /tests/*
+    path    /.htaccess
+    path    /data/*
+    path    /config/*
+    path    /db_structure
+    path    /.xml
+    path    /README
+    path    /3rdparty/*
+    path    /lib/*
+    path    /templates/*
+    path    /occ
+    path    /console.php
+    path    /autotest
+    path    /issue
+    path    /indie
+    path    /db_
+    path    /console
+  }
+
+  respond @forbidden 404
+}

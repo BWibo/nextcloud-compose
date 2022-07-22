@@ -56,24 +56,24 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB not set}
       POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER not set}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD not set}
-    command:
-      postgres
-      -c max_connections=100
-      -c shared_buffers=1GB
-      -c effective_cache_size=3GB
-      -c maintenance_work_mem=256MB
-      -c checkpoint_completion_target=0.9
-      -c wal_buffers=16MB
-      -c default_statistics_target=100
-      -c random_page_cost=1.1
-      -c effective_io_concurrency=200
-      -c work_mem=10485kB
-      -c min_wal_size=2GB
-      -c max_wal_size=8GB
-      -c max_worker_processes=2
-      -c max_parallel_workers_per_gather=1
-      -c max_parallel_workers=2
-      -c max_parallel_maintenance_workers=1
+    # command:
+    #   postgres
+    #   -c max_connections=100
+    #   -c shared_buffers=1GB
+    #   -c effective_cache_size=3GB
+    #   -c maintenance_work_mem=256MB
+    #   -c checkpoint_completion_target=0.9
+    #   -c wal_buffers=16MB
+    #   -c default_statistics_target=100
+    #   -c random_page_cost=1.1
+    #   -c effective_io_concurrency=200
+    #   -c work_mem=10485kB
+    #   -c min_wal_size=2GB
+    #   -c max_wal_size=8GB
+    #   -c max_worker_processes=2
+    #   -c max_parallel_workers_per_gather=1
+    #   -c max_parallel_workers=2
+    #   -c max_parallel_maintenance_workers=1
 
   # Redis ---------------------------------------------------------------------
   redis:

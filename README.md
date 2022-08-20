@@ -20,7 +20,7 @@ DOMAIN=localhost        # FQDN of your host or localhost for local testing.
 ADMIN_EMAIL=a@b.de      # eMail address for Let's Encrypt auto SSL certificate account.
 
 # Nextcloud
-NEXTCLOUD_VERSION=24.0.3-fpm
+NEXTCLOUD_VERSION=24.0.4-fpm
 NEXTCLOUD_ADMIN_USER=admin          # Change username and password!!
 NEXTCLOUD_ADMIN_PASSWORD=admin
 

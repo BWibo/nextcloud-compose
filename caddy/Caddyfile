@@ -19,10 +19,10 @@
     env front_controller_active true
   }
 
-  handle_path / {
-    if {>User-Agent} has DavClnt
-    to /remote.php/webdav/$is_args$args;
-  }
+  # handle_path / {
+  #   if {>User-Agent} has DavClnt
+  #   to /remote.php/webdav/$is_args$args;
+  # }
 
   # Redirects for DAV apps
   redir /.well-known/carddav /remote.php/carddav 301

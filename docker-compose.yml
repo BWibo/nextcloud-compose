@@ -6,11 +6,11 @@ version: '3.8'
 # Volumes #####################################################################
 volumes:
   nextcloud_caddy_data:
-    external: true
+  # external: true
   nextcloud_data:
-    external: true
+  # external: true
   nextcloud_db_data:
-    external: true
+  # external: true
 
 # Networks ####################################################################
 networks:
@@ -89,7 +89,7 @@ services:
       - net
     restart: unless-stopped
     volumes:
-      - nextcloud_data:/var/www/html
+     - nextcloud_data:/var/www/html
     environment:
       NEXTCLOUD_TRUSTED_DOMAINS: ${DOMAIN:?DOMAIN not set}
       NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER:?NEXTCLOUD_ADMIN_USER not set}
@@ -99,9 +99,10 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB not set}
       POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER not set}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD not set}
-      PHP_MEMORY_LIMIT: '512M'
-      PHP_UPLOAD_LIMIT: '16G'
-      TZ: 'Europe/Berlin'
+      PHP_MEMORY_LIMIT: ${PHP_MEMORY_LIMIT:?PHP_MEMORY_LIMIT not set}
+      PHP_UPLOAD_LIMIT: ${PHP_UPLOAD_LIMIT:?PHP_UPLOAD_LIMIT not set}
+      DEFAULT_PHONE_REGION: ${DEFAULT_PHONE_REGION:?DEFAULT_PHONE_REGION not set}
+      TZ: ${TIMEZONE:?TIMEZONE not set}
     depends_on:
       db:
         condition: service_healthy

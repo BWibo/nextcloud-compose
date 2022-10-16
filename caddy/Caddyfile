@@ -36,7 +36,7 @@
   redir /.well-known/* /index.php{uri} 301
 
   # Headers
-  header {
+  header / {
     # If staging acme_ca is enabled, this needs to be commented out!
     # Otherwise, it is not possible to add exception
     Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
@@ -56,6 +56,10 @@
 
     # Replace http with https in any Location header
     Location http:// https://
+  }
+
+  header /core/fonts {
+    Cache-Control				"max-age=604800"
   }
 
   # Cache control
@@ -111,24 +115,24 @@
 
   # .htaccess / data / config / ... shouldn't be accessible from outside
   @forbidden {
-    path    /build/*
-    path    /tests/*
-    path    /.htaccess
-    path    /data/*
-    path    /config/*
-    path    /db_structure
-    path    /.xml
-    path    /README
-    path    /3rdparty/*
-    path    /lib/*
-    path    /templates/*
-    path    /occ
-    path    /console.php
-    path    /autotest
-    path    /issue
-    path    /indie
-    path    /db_
-    path    /console
+    path /build/*
+    path /tests/*
+    path /.htaccess
+    path /data/*
+    path /config/*
+    path /db_structure
+    path /.xml
+    path /README
+    path /3rdparty/*
+    path /lib/*
+    path /templates/*
+    path /occ
+    path /console.php
+    path /autotest
+    path /issue
+    path /indie
+    path /db_
+    path /console
   }
 
   respond @forbidden 404

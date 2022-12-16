@@ -8,7 +8,7 @@
   # debug
 }
 
-{$DOMAIN} {
+{$TLS_DOMAINS} {
 
   # Static content
   root * /var/www/html

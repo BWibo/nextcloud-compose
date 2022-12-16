@@ -28,7 +28,7 @@ services:
       - 80:80
       - 443:443
     environment:
-      DOMAIN: "${DOMAIN:?DOMAIN not set}"
+      TLS_DOMAINS: "${TLS_DOMAINS:?TLS_DOMAINS not set}"
       ADMIN_EMAIL: "${ADMIN_EMAIL:?ADMIN_EMAIL not set}"
     networks:
       - net

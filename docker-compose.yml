@@ -7,6 +7,8 @@ version: '3.8'
 volumes:
   nextcloud_caddy_data:
     external: true
+
+  # Comment out, if using bind mount
   nextcloud_data:
     external: true
   nextcloud_db_data:
@@ -15,8 +17,7 @@ volumes:
 # Networks ####################################################################
 networks:
   net:
-    driver: overlay
-    attachable: true
+    driver: bridge
 
 # Services ####################################################################
 services:
@@ -29,6 +30,7 @@ services:
       - 443:443
     environment:
       TLS_DOMAINS: "${TLS_DOMAINS:?TLS_DOMAINS not set}"
+      DOMAIN: "${DOMAIN:?DOMAIN not set}"
       ADMIN_EMAIL: "${ADMIN_EMAIL:?ADMIN_EMAIL not set}"
     networks:
       - net
@@ -46,6 +48,8 @@ services:
       - net
     volumes:
       - nextcloud_db_data:/var/lib/postgresql/data
+    # ports:
+    #  - 5432:5432
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:?POSTGRES_USER not set} -d ${POSTGRES_DB:?POSTGRES_DB not set}"]
       interval: 10s
@@ -56,6 +60,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB not set}
       POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER not set}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD not set}
+    # psql performance tuning: https://pgtune.leopard.in.ua/
     # command:
     #   postgres
     #   -c max_connections=100
@@ -90,6 +95,8 @@ services:
     restart: unless-stopped
     volumes:
       - nextcloud_data:/var/www/html
+      # To bind mount data use e.g. this.
+      # - ./data:/var/www/html
     environment:
       NEXTCLOUD_TRUSTED_DOMAINS: ${DOMAIN:?DOMAIN not set}
       NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER:?NEXTCLOUD_ADMIN_USER not set}
@@ -99,7 +106,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB not set}
       POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER not set}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD not set}
-      PHP_MEMORY_LIMIT: '512M'
+      PHP_MEMORY_LIMIT: '1024M'
       PHP_UPLOAD_LIMIT: '16G'
       TZ: 'Europe/Berlin'
     depends_on:
@@ -117,6 +124,8 @@ services:
     volumes_from:
       - app
     entrypoint: /cron.sh
+    environment:
+      PHP_MEMORY_LIMIT: '1024M'
     depends_on:
       db:
         condition: service_healthy

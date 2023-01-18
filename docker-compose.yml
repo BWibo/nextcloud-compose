@@ -8,7 +8,7 @@ volumes:
   nextcloud_caddy_data:
     external: true
 
-  # Comment out, if using bind mount
+  # Comment out nextcloud_data volume, if using bind mount
   nextcloud_data:
     external: true
   nextcloud_db_data:

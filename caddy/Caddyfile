@@ -8,7 +8,7 @@
   # https://letsencrypt.org/docs/rate-limits/
   # acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
 
-  # Enable to see header set by upstream
+  # Uncomment to see headers set by upstream
   # debug
 }
 

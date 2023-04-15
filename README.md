@@ -19,22 +19,22 @@ Adapt `.env` for your requirements:
 # Domain used for trusted domains (config.php)
 DOMAIN=localhost
 
-# Domains for TLS certificates. Items separated by comma + space: "; "
+# Domains for TLS certificates. Items separated by comma + space: ", "
 TLS_DOMAINS="localhost, nextcloud.local"
 ADMIN_EMAIL=a@b.de
 
 # Nextcloud
-NEXTCLOUD_VERSION=25.0.3-fpm
+NEXTCLOUD_VERSION=26.0.0-fpm
 NEXTCLOUD_ADMIN_USER=admin      # Change username and password!!
-NEXTCLOUD_ADMIN_PASSWORD=admin
+NEXTCLOUD_ADMIN_PASSWORD=changeMe
 
 NC_default_phone_region=DE
 
 # DB
 POSTGRES_VERSION=14-alpine
-POSTGRES_PASSWORD=nextcloud
 POSTGRES_DB=nextcloud           # Change username and password!!
 POSTGRES_USER=nextcloud
+POSTGRES_PASSWORD=changeMe
 ```
 
 ### Run nextcloud

@@ -1,7 +1,12 @@
 {
   # SSL
   email {$ADMIN_EMAIL}
-  acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+
+  # TESTING and DEVELOPMENT
+  # Uncomment this to enable staging certificates to avoid rate limits
+  # If this is uncommented, see header section below!
+  # https://letsencrypt.org/docs/rate-limits/
+  # acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
 
   # Enable to see header set by upstream
   # debug
@@ -32,7 +37,7 @@
   # Headers
   header {
     # If staging acme_ca is enabled, this needs to be commented out!
-    # Otherwise, it is not possible to add exception
+    # Otherwise, it is not possible to add browser exception
     Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
 
     # More security hardening headers

@@ -38,6 +38,10 @@ services:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
     volumes_from:
       - app
+    logging:
+      options:
+        max-size: ${DOCKER_LOGGING_MAX_SIZE:?DOCKER_LOGGING_MAX_SIZE not set}
+        max-file: ${DOCKER_LOGGING_MAX_FILE:?DOCKER_LOGGING_MAX_FILE not set}
 
   # Postgres ------------------------------------------------------------------
   db:
@@ -55,6 +59,10 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
+    logging:
+      options:
+        max-size: ${DOCKER_LOGGING_MAX_SIZE:?DOCKER_LOGGING_MAX_SIZE not set}
+        max-file: ${DOCKER_LOGGING_MAX_FILE:?DOCKER_LOGGING_MAX_FILE not set}
     environment:
       POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB not set}
       POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER not set}
@@ -85,6 +93,10 @@ services:
     networks:
       - net
     restart: unless-stopped
+    logging:
+      options:
+        max-size: ${DOCKER_LOGGING_MAX_SIZE:?DOCKER_LOGGING_MAX_SIZE not set}
+        max-file: ${DOCKER_LOGGING_MAX_FILE:?DOCKER_LOGGING_MAX_FILE not set}
 
   # Nextcloud -----------------------------------------------------------------
   app:
@@ -115,6 +127,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    logging:
+      options:
+        max-size: ${DOCKER_LOGGING_MAX_SIZE:?DOCKER_LOGGING_MAX_SIZE not set}
+        max-file: ${DOCKER_LOGGING_MAX_FILE:?DOCKER_LOGGING_MAX_FILE not set}
 
   # Cron ----------------------------------------------------------------------
   cron:
@@ -136,3 +152,7 @@ services:
         condition: service_started
       redis:
         condition: service_started
+    logging:
+      options:
+        max-size: ${DOCKER_LOGGING_MAX_SIZE:?DOCKER_LOGGING_MAX_SIZE not set}
+        max-file: ${DOCKER_LOGGING_MAX_FILE:?DOCKER_LOGGING_MAX_FILE not set}

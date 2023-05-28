@@ -105,10 +105,11 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB not set}
       POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER not set}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD not set}
-      PHP_MEMORY_LIMIT: '1024M'
-      PHP_UPLOAD_LIMIT: '16G'
-      NC_default_phone_region: ${NC_default_phone_region:?NC_default_phone_region not set}
+      PHP_MEMORY_LIMIT: ${PHP_MEMORY_LIMIT:?PHP_MEMORY_LIMIT not set}
+      PHP_UPLOAD_LIMIT: $PHP_UPLOAD_LIMIT:?PHP_UPLOAD_LIMIT not set}
       TZ: 'Europe/Berlin'
+    env_file:
+      - nextcloud.env
     depends_on:
       db:
         condition: service_healthy
@@ -125,7 +126,9 @@ services:
       - app
     entrypoint: /cron.sh
     environment:
-      PHP_MEMORY_LIMIT: '1024M'
+      PHP_MEMORY_LIMIT: ${PHP_MEMORY_LIMIT:?PHP_MEMORY_LIMIT not set}
+    env_file:
+      - nextcloud.env
     depends_on:
       db:
         condition: service_healthy

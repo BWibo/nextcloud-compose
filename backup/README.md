@@ -3,7 +3,7 @@
 * Backup to a local HDD
 * Backup to Azure Blog storage
 
-## Backup every night a 44:00
+## Backup every night a 04:00
 
 Add this to `sudo crontab -e`. Root is required!
 

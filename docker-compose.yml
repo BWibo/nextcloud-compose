@@ -6,13 +6,18 @@ version: '3.8'
 # Volumes #####################################################################
 volumes:
   nextcloud_caddy_data:
-    external: true
+    external: false
 
   # Comment out nextcloud_data volume, if using bind mount
   nextcloud_data:
-    external: true
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "nfsvers=4,addr=172.30.0.2,rw"
+      device: ":/nfs"
+
   nextcloud_db_data:
-    external: true
+    external: false
 
 # Networks ####################################################################
 networks:

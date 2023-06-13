@@ -1,0 +1,8 @@
+# git folders
+**/.git
+
+# Nextcloud data folder
+../data
+!../data/data
+!../data/config
+!../data/themes

@@ -116,4 +116,8 @@ errtmp=$?
 ERR=$(($ERR + $errtmp))
 echo "cleanup restic snapshots - Azure " $errtmp >> ${LOGFILE}
 
+printf "\n\n" >> ${LOGFILE}
 echo "Total ERR" $ERR >> ${LOGFILE}
+echo "-- Nextcloud backup" `date --utc +%FT%TZ` "done!------------------------" \
+  >> ${LOGFILE}
+printf "\n\n" >> ${LOGFILE}

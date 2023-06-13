@@ -20,7 +20,7 @@ Add this to `sudo crontab -e`. Root is required!
 
 # General settings
 NEXTCLOUD_BACKUP_LOGFILE="$HOME/nextcloud-backup-restic.log"
-NEXTCLOUD_BACKUPDIR_TEMP="/tmp/nextcloud/backup"
+NEXTCLOUD_BACKUPDIR_TEMP="/tmp/nextcloud_backup/db"
 
 # Restic settings
 NEXTCLOUD_RESTIC_INCLUDE_FILE="/nextcloud/backup/include.txt"

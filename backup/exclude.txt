@@ -1,6 +1,6 @@
 # git folders
 **/.git
-**/.git
+**/.github
 
 # Nextcloud files
 nextcloud-init-sync.lock

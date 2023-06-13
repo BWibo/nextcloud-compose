@@ -1,11 +1,14 @@
+# Nextcloud database export folder
+/tmp/nextcloud_backup/db/
+
 # Nextcloud repository folder
 /media/samsung/nextcloud/
 
 # Nextcloud data folder
-# /media/samsung/nextcloud/data/data/
+/media/samsung/nextcloud/data/data/
 
 # Nextcloud config folder
-# /media/samsung/nextcloud/data/config/
+/media/samsung/nextcloud/data/config/
 
 # Nextcloud themes folder
-# /media/samsung/nextcloud/data/themes/
+/media/samsung/nextcloud/data/themes/

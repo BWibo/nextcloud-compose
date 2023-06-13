@@ -30,7 +30,7 @@ DB_PASSWORD="${NEXTCLOUD_DB_PASSWORD:-changeMe}"
 # script ----------------------------------------------------------------------
 ERR=0
 printf "\n\n" >> ${LOGFILE}
-echo "-- Nextcloud backup " `date --utc +%FT%TZ` "-----------------------------" \
+echo "-- Nextcloud backup" `date --utc +%FT%TZ` "-----------------------------\n" \
   >> ${LOGFILE}
 
 # Enable maintenance mode

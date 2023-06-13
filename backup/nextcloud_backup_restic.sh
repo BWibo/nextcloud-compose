@@ -30,8 +30,9 @@ DB_PASSWORD="${NEXTCLOUD_DB_PASSWORD:-changeMe}"
 # script ----------------------------------------------------------------------
 ERR=0
 printf "\n\n" >> ${LOGFILE}
-echo "-- Nextcloud backup" `date --utc +%FT%TZ` "-----------------------------\n" \
+echo "-- Nextcloud backup" `date --utc +%FT%TZ` "-----------------------------" \
   >> ${LOGFILE}
+printf "\n\n" >> ${LOGFILE}
 
 # Enable maintenance mode
 docker exec -i --user 33 nextcloud-app-1 ./occ maintenance:mode --on \

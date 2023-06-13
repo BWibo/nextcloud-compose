@@ -15,6 +15,7 @@ export RESTIC_PASSWORD="${NEXTCLOUD_RESTIC_PASSWORD:-changeMe}"
 FORGET_POLICY="${NEXTCLOUD_RESTIC_FORGET_POLICY:---keep-within-daily 7d --keep-within-weekly 6m}"
 RESTIC_REPOSITORY_LOCAL="${NEXTCLOUD_RESTIC_REPO_LOCAL:-/media/myhdd/restic/nextcloud}"
 RESTIC_REPOSITORY_AZURE="${NEXTCLOUD_RESTIC_REPO_AZURE:-azure:restic:/nextcloud}"
+DRY_RUN="${RESTIC_DRY_RUN:-}"
 
 # Azure Storage Account name and key
 export AZURE_ACCOUNT_NAME="${NEXTCLOUD_AZURE_ACCOUNT_NAME:-accountname}"
@@ -60,7 +61,7 @@ echo "dump nextcloud db " $errtmp >> ${LOGFILE}
 # Create testic snapshot - local
 # Local restic repo
 export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_LOCAL}"
-restic backup --no-scan \
+restic backup --no-scan $DRY_RUN \
   --files-from "${INCLUDE_FILE}" \
   --iexclude-file "${EXCLUDE_FILE}" >> ${LOGFILE} 2>&1
 
@@ -70,7 +71,7 @@ echo "create restic snapshot - local" $errtmp >> ${LOGFILE}
 
 # Create restic snapshot - Azure
 export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_AZURE}"
-restic backup --no-scan \
+restic backup --no-scan $DRY_RUN \
   --files-from "${INCLUDE_FILE}" \
   --iexclude-file "${EXCLUDE_FILE}" >> ${LOGFILE} 2>&1
 
@@ -96,7 +97,7 @@ echo "cleanup backup dir " $errtmp >> ${LOGFILE}
 # Cleanup restic repos
 # local
 export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_LOCAL}"
-restic forget --prune $FORGET_POLICY >> ${LOGFILE} 2>&1
+restic forget --prune $FORGET_POLICY $DRY_RUN >> ${LOGFILE} 2>&1
 
 errtmp=$?
 ERR=$(($ERR + $errtmp))
@@ -104,7 +105,7 @@ echo "cleanup restic snapshots - local " $errtmp >> ${LOGFILE}
 
 # Azure
 export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_AZURE}"
-restic forget --prune restic forget --prune $FORGET_POLICY >> ${LOGFILE} 2>&1
+restic forget --prune $FORGET_POLICY $DRY_RUN >> ${LOGFILE} 2>&1
   >> ${LOGFILE} 2>&1
 
 errtmp=$?

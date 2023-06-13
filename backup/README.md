@@ -29,6 +29,7 @@ NEXTCLOUD_RESTIC_PASSWORD="changeMe"
 NEXTCLOUD_RESTIC_FORGET_POLICY="--keep-within-daily 56d --keep-within-weekly 6m --keep-within-monthly 1y --keep-within-yearly 5y"
 NEXTCLOUD_RESTIC_REPO_LOCAL="/media/intenso/restic/nextcloud"
 NEXTCLOUD_RESTIC_REPO_AZURE="azure:restic:/nextcloud"
+# NEXTCLOUD_RESTIC_DRY_RUN="-vv --dry-run"
 
 # Azure account name and key
 NEXTCLOUD_AZURE_ACCOUNT_NAME="accountname"

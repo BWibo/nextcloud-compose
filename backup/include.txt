@@ -1,0 +1,11 @@
+# Nextcloud repository folder
+/mnt/<backup-disk>/nextcloud/
+
+# Nextcloud data folder
+# /mnt/<backup-disk>/nextcloud/data/data/
+
+# Nextcloud config folder
+# /mnt/<backup-disk>/nextcloud/data/config/
+
+# Nextcloud themes folder
+# /mnt/<backup-disk>/nextcloud/data/themes/

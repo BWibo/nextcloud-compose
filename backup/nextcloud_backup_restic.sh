@@ -5,7 +5,7 @@
 
 # config ----------------------------------------------------------------------
 # General settings
-LOGFILE="${NEXTCLOUD_BACKUP_LOGFILE:-$HOME/nextcloud-backup-restic.log}"
+LOGFILE="${NEXTCLOUD_BACKUP_LOGFILE:-/home/me/nextcloud-backup-restic.log}"
 BACKUPDIR_DB_TEMP="${NEXTCLOUD_BACKUPDIR_TEMP:-/tmp/nextcloud/backup}"
 
 # Restic setings

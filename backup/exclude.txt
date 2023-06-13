@@ -2,7 +2,7 @@
 **/.git
 
 # Nextcloud data folder
-../data
-!../data/data
-!../data/config
-!../data/themes
+data
+!data/data
+!data/config
+!data/themes

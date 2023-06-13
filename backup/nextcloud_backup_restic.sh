@@ -13,13 +13,14 @@ BACKUPDIR_DB_TEMP=/tmp/nextcloud_backup/db
 ERR=0
 
 # Restic repo password
-export RESTIC_PASSWORD=""
+export RESTIC_PASSWORD="${NEXTCLOUD_RESTIC_PASSWORD:-changeMe}"
 RESTIC_REPOSITORY_LOCAL="/media/myhdd/restic/nextcloud"
 RESTIC_REPOSITORY_AZURE="azure:restic:/nextcloud"
 
 # Azure Storage Account name and key
-export AZURE_ACCOUNT_NAME=""
-export AZURE_ACCOUNT_KEY=""
+export AZURE_ACCOUNT_NAME="${NEXTCLOUD_AZURE_ACCOUNT_NAME:-accountname}"
+export AZURE_ACCOUNT_KEY="${NEXTCLOUD_AZURE_ACCOUNT_KEY:-changeMe}"
+
 
 # Nextcloud database
 NEXTCLOUD_DB_HOST=db
@@ -55,7 +56,7 @@ echo "dump nextcloud db " $errtmp >> ${LOGFILE}
 
 # Create testic snapshot - local
 # Local restic repo
-export RESTIC_REPOSITORY="$RESTIC_REPOSITORY_LOCAL"
+export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_LOCAL:-/media/intenso/restic/nextcloud}"
 echo "$BACKUPDIR_DB_TEMP $NEXTCLOUD_BACKUP_PATHS" | \
   xargs \
   restic backup --no-scan >> ${LOGFILE} 2>&1
@@ -65,7 +66,7 @@ ERR=$(($ERR + $errtmp))
 echo "create restic snapshot - local" $errtmp >> ${LOGFILE}
 
 # Create restic snapshot - Azure
-export RESTIC_REPOSITORY="$RESTIC_REPOSITORY_AZURE"
+export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_AZURE:-azure:restic:/nextcloud}"
 echo "$BACKUPDIR_DB_TEMP $NEXTCLOUD_BACKUP_PATHS" | \
   xargs \
   restic backup --no-scan >> ${LOGFILE} 2>&1
@@ -91,16 +92,20 @@ echo "cleanup backup dir " $errtmp >> ${LOGFILE}
 
 # Cleanup restic repos
 # local
-export RESTIC_REPOSITORY="$RESTIC_REPOSITORY_LOCAL"
-restic forget --prune --keep-daily 7 --keep-weekly 5 --keep-monthly 12 --keep-yearly 5
+export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_LOCAL:-/media/intenso/restic/nextcloud}"
+restic forget --prune \
+  --keep-within-daily 56d --keep-within-weekly 6m --keep-within-monthly 1y --keep-within-yearly 5y \
+  >> ${LOGFILE} 2>&1
 
 errtmp=$?
 ERR=$(($ERR + $errtmp))
 echo "cleanup restic snapshots - local " $errtmp >> ${LOGFILE}
 
 # Azure
-export RESTIC_REPOSITORY="$RESTIC_REPOSITORY_AZURE"
-restic forget --prune --keep-daily 7 --keep-weekly 5 --keep-monthly 12 --keep-yearly 2
+export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_AZURE:-azure:restic:/nextcloud}"
+restic forget --prune \
+  --keep-within-daily 56d --keep-within-weekly 6m --keep-within-monthly 1y --keep-within-yearly 5y \
+  >> ${LOGFILE} 2>&1
 
 errtmp=$?
 ERR=$(($ERR + $errtmp))

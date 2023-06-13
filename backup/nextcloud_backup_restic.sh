@@ -50,7 +50,7 @@ docker run -i --rm --name pgdump \
     --network nextcloud_net \
     -e PGPASSWORD="$DB_PASSWORD" \
   postgres:14-alpine \
-    -v -h "$DB_HOST" -U "$DB_USER" \
+    -h "$DB_HOST" -U "$DB_USER" \
     -d "$DB_NAME" -f /data/nextcloud-sqlbkp.bak \
     >> ${LOGFILE} 2>&1
 

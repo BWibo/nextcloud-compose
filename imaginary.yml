@@ -1,14 +1,14 @@
 version: '3.8'
 
 networks:
-  imagery:
+  imaginary:
     driver: overlay
     attachable: true
 
 services:
-  imagery:
+  imaginary:
     networks:
-      - imagery
+      - imaginary
     image: nextcloud/aio-imaginary:latest
     restart: unless-stopped
     environment:

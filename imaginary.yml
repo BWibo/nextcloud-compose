@@ -1,0 +1,25 @@
+version: '3.8'
+
+networks:
+  imagery:
+    driver: overlay
+    attachable: true
+
+services:
+  imagery:
+    networks:
+      - imagery
+    image: nextcloud/aio-imaginary:latest
+    restart: unless-stopped
+    environment:
+      PORT: 9000
+      TZ: 'Europe/Berlin'
+    # command: ["-concurrency", "10", "-enable-url-source"]
+    deploy:
+      # mode: global
+      replicas: 3
+      endpoint_mode: dnsrr
+      # placement:
+        # constraints:
+          # - "node.role==worker"
+          # - "node.hostname==THEHOSTNAME"

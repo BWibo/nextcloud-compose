@@ -10,15 +10,24 @@ volumes:
 
   # Comment out nextcloud_data volume, if using bind mount
   nextcloud_data:
-    external: true
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/samsung/nextcloud/data
+
   nextcloud_db_data:
     external: true
 
 # Networks ####################################################################
 networks:
   net:
-    driver: bridge
-
+    # driver: bridge
+    driver: overlay
+    attachable: true
+  img:
+    name: imagery_imagery
+    external: true
 # Services ####################################################################
 services:
   # Caddy ---------------------------------------------------------------------
@@ -36,8 +45,7 @@ services:
     volumes:
       - nextcloud_caddy_data:/data
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
-    volumes_from:
-      - app
+      - nextcloud_data:/var/www/html
     logging:
       options:
         max-size: ${DOCKER_LOGGING_MAX_SIZE:?DOCKER_LOGGING_MAX_SIZE not set}
@@ -51,8 +59,8 @@ services:
       - net
     volumes:
       - nextcloud_db_data:/var/lib/postgresql/data
-    # ports:
-    #  - 5432:5432
+    ports:
+     - 5432:5432
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:?POSTGRES_USER not set} -d ${POSTGRES_DB:?POSTGRES_DB not set}"]
       interval: 10s
@@ -68,24 +76,24 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER not set}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD not set}
     # psql performance tuning: https://pgtune.leopard.in.ua/
-    # command:
-    #   postgres
-    #   -c max_connections=100
-    #   -c shared_buffers=1GB
-    #   -c effective_cache_size=3GB
-    #   -c maintenance_work_mem=256MB
-    #   -c checkpoint_completion_target=0.9
-    #   -c wal_buffers=16MB
-    #   -c default_statistics_target=100
-    #   -c random_page_cost=1.1
-    #   -c effective_io_concurrency=200
-    #   -c work_mem=10485kB
-    #   -c min_wal_size=2GB
-    #   -c max_wal_size=8GB
-    #   -c max_worker_processes=2
-    #   -c max_parallel_workers_per_gather=1
-    #   -c max_parallel_workers=2
-    #   -c max_parallel_maintenance_workers=1
+    command:
+      postgres
+      -c max_connections=50
+      -c shared_buffers=2GB
+      -c effective_cache_size=6GB
+      -c maintenance_work_mem=512MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=20971kB
+      -c min_wal_size=1GB
+      -c max_wal_size=4GB
+      -c max_worker_processes=4
+      -c max_parallel_workers_per_gather=2
+      -c max_parallel_workers=4
+      -c max_parallel_maintenance_workers=2
 
   # Redis ---------------------------------------------------------------------
   redis:
@@ -103,11 +111,10 @@ services:
     image: nextcloud:${NEXTCLOUD_VERSION:?NEXTCLOUD_VERSION not set}
     networks:
       - net
+      - img
     restart: unless-stopped
     volumes:
       - nextcloud_data:/var/www/html
-      # To bind mount data use e.g. this.
-      # - ./data:/var/www/html
     environment:
       NEXTCLOUD_TRUSTED_DOMAINS: ${DOMAIN:?DOMAIN not set}
       NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER:?NEXTCLOUD_ADMIN_USER not set}
@@ -137,9 +144,10 @@ services:
     image: nextcloud:${NEXTCLOUD_VERSION:?NEXTCLOUD_VERSION not set}
     networks:
       - net
+      - img
     restart: unless-stopped
-    volumes_from:
-      - app
+    volumes:
+      - nextcloud_data:/var/www/html
     entrypoint: /cron.sh
     environment:
       PHP_MEMORY_LIMIT: ${PHP_MEMORY_LIMIT:?PHP_MEMORY_LIMIT not set}

@@ -22,10 +22,10 @@ export AZURE_ACCOUNT_NAME="${NEXTCLOUD_AZURE_ACCOUNT_NAME:-accountname}"
 export AZURE_ACCOUNT_KEY="${NEXTCLOUD_AZURE_ACCOUNT_KEY:-changeMe}"
 
 # Nextcloud database
-NEXTCLOUD_DB_HOST="${NEXTCLOUD_DB_HOST:-db}"
-NEXTCLOUD_DB_NAME="${NEXTCLOUD_DB_NAME:-nextcloud}"
-NEXTCLOUD_DB_USER="${NEXTCLOUD_DB_USER:-nextcloud}"
-NEXTCLOUD_DB_PASSWORD="${NEXTCLOUD_DB_PASSWORD:-changeMe}"
+DB_HOST="${NEXTCLOUD_DB_HOST:-db}"
+DB_NAME="${NEXTCLOUD_DB_NAME:-nextcloud}"
+DB_USER="${NEXTCLOUD_DB_USER:-nextcloud}"
+DB_PASSWORD="${NEXTCLOUD_DB_PASSWORD:-changeMe}"
 
 # script ----------------------------------------------------------------------
 ERR=0
@@ -48,10 +48,10 @@ docker run -i --rm --name pgdump \
     -v "$BACKUPDIR_DB_TEMP":/data \
     --entrypoint pg_dump \
     --network nextcloud_net \
-    -e PGPASSWORD="$NEXTCLOUD_DB_PASSWORD" \
+    -e PGPASSWORD="$DB_PASSWORD" \
   postgres:14-alpine \
-    -v -h "$NEXTCLOUD_DB_HOST" -U "$NEXTCLOUD_DB_USER" \
-    -d "NEXTCLOUD_DB_NAME" -f /data/nextcloud-sqlbkp.bak \
+    -v -h "$DB_HOST" -U "$DB_USER" \
+    -d "DB_NAME" -f /data/nextcloud-sqlbkp.bak \
     >> ${LOGFILE} 2>&1
 
 errtmp=$?

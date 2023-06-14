@@ -1,5 +1,5 @@
 # Nextcloud database export folder
-/tmp/nextcloud_backup/db/
+/tmp/nextcloud/backup/
 
 # Nextcloud app/compose folder
 /media/samsung/nextcloud/

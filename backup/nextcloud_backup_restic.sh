@@ -43,7 +43,8 @@ ERR=$(($ERR + $errtmp))
 echo "nextcloud enable maintenance mode " $errtmp >> ${LOGFILE} 2>&1
 
 # Dump database
-mkdir -p -v "$BACKUPDIR_DB_TEMP"
+rm -r -f "$BACKUPDIR_DB_TEMP" >> ${LOGFILE} 2>&1
+mkdir -p -v "$BACKUPDIR_DB_TEMP" >> ${LOGFILE} 2>&1
 
 docker run -i --rm --name pgdump \
     -v "$BACKUPDIR_DB_TEMP":/data \
@@ -54,6 +55,8 @@ docker run -i --rm --name pgdump \
     -h "$DB_HOST" -U "$DB_USER" \
     -d "$DB_NAME" -F d -j 4 -f /data/ \
     >> ${LOGFILE} 2>&1
+
+chown -R $USER:$GROUP "$BACKUPDIR_DB_TEMP" >> ${LOGFILE} 2>&1
 
 errtmp=$?
 ERR=$(($ERR + $errtmp))

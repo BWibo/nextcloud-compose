@@ -56,8 +56,6 @@ docker run -i --rm --name pgdump \
     -d "$DB_NAME" -F d -j 4 -f /data/ \
     >> ${LOGFILE} 2>&1
 
-chown -R $USER:$GROUP "$BACKUPDIR_DB_TEMP" >> ${LOGFILE} 2>&1
-
 errtmp=$?
 ERR=$(($ERR + $errtmp))
 echo "dump nextcloud db " $errtmp >> ${LOGFILE}

@@ -102,7 +102,7 @@ echo "cleanup backup dir " $errtmp >> ${LOGFILE}
 # local
 export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_LOCAL}"
 echo "$FORGET_POLICY" "$DRY_RUN"  | xargs \
-restic forget --prune >> ${LOGFILE} 2>&1
+restic forget >> ${LOGFILE} 2>&1
 
 errtmp=$?
 ERR=$(($ERR + $errtmp))
@@ -111,7 +111,7 @@ echo "cleanup restic snapshots - local " $errtmp >> ${LOGFILE}
 # Azure
 export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_AZURE}"
 echo "$FORGET_POLICY" "$DRY_RUN"  | xargs \
-restic forget --prune >> ${LOGFILE} 2>&1
+restic forget >> ${LOGFILE} 2>&1
 
 errtmp=$?
 ERR=$(($ERR + $errtmp))

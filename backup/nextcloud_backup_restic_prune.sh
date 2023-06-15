@@ -32,7 +32,13 @@ restic prune >> ${LOGFILE} 2>&1
 
 errtmp=$?
 ERR=$(($ERR + $errtmp))
-echo "cleanup restic snapshots - local " $errtmp >> ${LOGFILE}
+echo "prune restic snapshots - local " $errtmp >> ${LOGFILE}
+
+restic check >> ${LOGFILE} 2>&1
+
+errtmp=$?
+ERR=$(($ERR + $errtmp))
+echo "check restic repo - local " $errtmp >> ${LOGFILE}
 
 # Azure
 export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_AZURE}"
@@ -41,7 +47,13 @@ restic prune >> ${LOGFILE} 2>&1
 
 errtmp=$?
 ERR=$(($ERR + $errtmp))
-echo "cleanup restic snapshots - Azure " $errtmp >> ${LOGFILE}
+echo "prune restic snapshots - Azure " $errtmp >> ${LOGFILE}
+
+restic check >> ${LOGFILE} 2>&1
+
+errtmp=$?
+ERR=$(($ERR + $errtmp))
+echo "check restic repo - Azure " $errtmp >> ${LOGFILE}
 
 printf "\n\n" >> ${LOGFILE}
 echo "Total ERR" $ERR >> ${LOGFILE}

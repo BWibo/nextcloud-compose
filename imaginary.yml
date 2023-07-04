@@ -10,6 +10,7 @@ services:
     networks:
       - imaginary
     image: nextcloud/aio-imaginary:latest
+    hostname: imaginary
     restart: unless-stopped
     environment:
       PORT: 9000

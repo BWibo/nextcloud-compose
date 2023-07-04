@@ -104,7 +104,12 @@ services:
 
   # Nextcloud -----------------------------------------------------------------
   app:
-    image: nextcloud:${NEXTCLOUD_VERSION:?NEXTCLOUD_VERSION not set}
+    image: my-nextcloud:${NEXTCLOUD_VERSION:?NEXTCLOUD_VERSION not set}
+    build:
+      context: nextcloud
+      args:
+        NEXTCLOUD_VERSION: ${NEXTCLOUD_VERSION:?NEXTCLOUD_VERSION not set}
+      no_cache: true
     networks:
       - net
       - img
@@ -139,7 +144,12 @@ services:
 
   # Cron ----------------------------------------------------------------------
   cron:
-    image: nextcloud:${NEXTCLOUD_VERSION:?NEXTCLOUD_VERSION not set}
+    image: my-nextcloud:${NEXTCLOUD_VERSION:?NEXTCLOUD_VERSION not set}
+    build:
+      context: nextcloud
+      args:
+        NEXTCLOUD_VERSION: ${NEXTCLOUD_VERSION:?NEXTCLOUD_VERSION not set}
+      no_cache: true
     networks:
       - net
       - img

@@ -19,9 +19,10 @@ networks:
   net:
     driver: bridge
     attachable: true
-  img:
-    name: imaginary_imaginary
-    external: true
+  # Uncomment, if imaginary stack should be used (see imaginary.yml)
+  # img:
+  #   name: imaginary_imaginary
+  #   external: true
 
 # Services ####################################################################
 services:

@@ -10,7 +10,6 @@ services:
     networks:
       - imaginary
     image: nextcloud/aio-imaginary:latest
-    pull_policy: always
     hostname: imaginary
     restart: unless-stopped
     environment:

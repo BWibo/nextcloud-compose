@@ -17,7 +17,7 @@ services:
       TZ: 'Europe/Berlin'
     # command: ["-concurrency", "10", "-enable-url-source"]
     cap_add:
-      - SYS_NICE
+      - CAP_SYS_NICE
     deploy:
       # mode: global
       replicas: 3

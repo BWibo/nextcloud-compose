@@ -47,7 +47,7 @@
 		X-Permitted-Cross-Domain-Policies "none"
 		X-Robots-Tag "noindex, nofollow"
 		X-XSS-Protection "1; mode=block"
-		Permissions-Policy "interest-cohort=()"
+		# Permissions-Policy "interest-cohort=()"
 
 		# Remove X-Powered-By header, which is an information leak
 		-X-Powered-By

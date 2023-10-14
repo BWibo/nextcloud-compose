@@ -126,4 +126,6 @@
   }
 
   respond @forbidden 404
+  # not sure if this is 100% safe, but it looks nicer when you hit a 404
+  # rewrite @forbidden '/index.php/error/404'
 }

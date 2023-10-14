@@ -80,24 +80,33 @@
 		minimum_length 256
 
 		match {
-			header Content-Type text/*
-			header Content-Type application/json*
-			header Content-Type application/javascript*
-			header Content-Type application/xhtml+xml*
 			header Content-Type application/atom+xml*
-			header Content-Type application/rss+xml*
-			header Content-Type image/svg+xml*
+			header Content-Type application/javascript*
+			header Content-Type application/json*
 			header Content-Type application/ld+json*
 			header Content-Type application/manifest+json*
+			header Content-Type application/rss+xml*
 			header Content-Type application/vnd.geo+json*
 			header Content-Type application/vnd.ms-fontobject*
 			header Content-Type application/x-font-ttf*
 			header Content-Type application/x-web-app-manifest+json*
+			header Content-Type application/xhtml+xml*
 			header Content-Type application/xml*
 			header Content-Type font/opentype*
 			header Content-Type image/bmp*
+			header Content-Type image/svg+xml*
 			header Content-Type image/x-icon*
-			header Content-Type text/cache-manifest*
+			header Content-Type application/atom+xmlapplication/javascript*
+			# Would this be a good idea?
+			header Content-Type text/*
+			# header Content-Type text/cache-manifest*
+			# header Content-Type text/css*
+			# header Content-Type text/plain*
+			# header Content-Type text/vcard*
+			# header Content-Type text/vnd.rim.location.xloc*
+			# header Content-Type text/vtt*
+			# header Content-Type text/x-component*
+			# header Content-Type text/x-cross-domain-policy*
 		}
 	}
 

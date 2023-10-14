@@ -104,24 +104,25 @@
 
   # .htaccess / data / config / ... shouldn't be accessible from outside
   @forbidden {
-    path    /build/*
-    path    /tests/*
     path    /.htaccess
-    path    /data/*
-    path    /config/*
-    path    /db_structure
+		path    /.user.ini
     path    /.xml
-    path    /README
     path    /3rdparty/*
-    path    /lib/*
-    path    /templates/*
-    path    /occ
-    path    /console.php
     path    /autotest
-    path    /issue
-    path    /indie
-    path    /db_
+    path    /build/*
+    path    /config/*
     path    /console
+    path    /console.php
+    path    /data/*
+    path    /db_
+    path    /db_structure
+    path    /indie
+    path    /issue
+    path    /lib/*
+    path    /occ
+    path    /README
+    path    /templates/*
+    path    /tests/*
   }
 
   respond @forbidden 404

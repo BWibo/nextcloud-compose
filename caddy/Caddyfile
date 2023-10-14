@@ -1,131 +1,130 @@
 {
-  # SSL
-  email {$ADMIN_EMAIL}
+	# SSL
+	email {$ADMIN_EMAIL}
 
-  # TESTING and DEVELOPMENT
-  # Uncomment this to enable staging certificates to avoid rate limits
-  # If this is uncommented, see header section below!
-  # https://letsencrypt.org/docs/rate-limits/
-  # acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+	# TESTING and DEVELOPMENT
+	# Uncomment this to enable staging certificates to avoid rate limits
+	# If this is uncommented, see header section below!
+	# https://letsencrypt.org/docs/rate-limits/
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
 
-  # Uncomment to see headers set by upstream
-  # debug
+	# Uncomment to see headers set by upstream
+	# debug
 }
 
 {$TLS_DOMAINS} {
+	# Static content
+	root * /var/www/html
+	file_server
 
-  # Static content
-  root * /var/www/html
-  file_server
+	# PHP fast cgi
+	php_fastcgi app:9000 {
+		env front_controller_active true
+	}
 
-  # PHP fast cgi
-  php_fastcgi app:9000 {
-    env front_controller_active true
-  }
+	# Redirects for DAV apps
+	redir /.well-known/carddav /remote.php/dav 301
+	redir /.well-known/caldav /remote.php/dav 301
 
-  # Redirects for DAV apps
-  redir /.well-known/carddav /remote.php/dav 301
-  redir /.well-known/caldav /remote.php/dav 301
+	respond /.well-known/acme-challenge 404
+	respond /.well-known/pki-validation 404
 
-  respond /.well-known/acme-challenge 404
-  respond /.well-known/pki-validation 404
+	# redir /.well-known/* /index.php/.well-known/webfinger 301
+	# redir /.well-known/nodeinfo /index.php/.well-known/nodeinfo 301
+	redir /.well-known/* /index.php{uri} 301
 
-  # redir /.well-known/* /index.php/.well-known/webfinger 301
-  # redir /.well-known/nodeinfo /index.php/.well-known/nodeinfo 301
-  redir /.well-known/* /index.php{uri} 301
+	# Headers
+	header {
+		# If staging acme_ca is enabled, this needs to be commented out!
+		# Otherwise, it is not possible to add browser exception
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
 
-  # Headers
-  header {
-    # If staging acme_ca is enabled, this needs to be commented out!
-    # Otherwise, it is not possible to add browser exception
-    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		# More security hardening headers
+		Referrer-Policy "no-referrer"
+		X-Content-Type-Options "nosniff"
+		X-Download-Options "noopen"
+		X-Frame-Options "SAMEORIGIN"
+		X-Permitted-Cross-Domain-Policies "none"
+		X-Robots-Tag "noindex, nofollow"
+		X-XSS-Protection "1; mode=block"
+		Permissions-Policy "interest-cohort=()"
 
-    # More security hardening headers
-    Referrer-Policy                   "no-referrer"
-    X-Content-Type-Options            "nosniff"
-    X-Download-Options                "noopen"
-    X-Frame-Options                   "SAMEORIGIN"
-    X-Permitted-Cross-Domain-Policies "none"
-    X-Robots-Tag                      "noindex, nofollow"
-    X-XSS-Protection                  "1; mode=block"
-    Permissions-Policy                "interest-cohort=()"
+		# Remove X-Powered-By header, which is an information leak
+		-X-Powered-By
 
-    # Remove X-Powered-By header, which is an information leak
-    -X-Powered-By
+		# Replace http with https in any Location header
+		Location http:// https://
+	}
 
-    # Replace http with https in any Location header
-    Location http:// https://
-  }
+	# Cache control
+	@static {
+		file
+		path *.css *.js *.svg *.gif
+	}
 
-  # Cache control
-  @static {
-    file
-    path *.css *.js *.svg *.gif
-  }
+	header @static {
+		Cache-Control "max-age=360"
+	}
 
-  header @static {
-    Cache-Control "max-age=360"
-  }
+	@fonts {
+		path /core/fonts
+	}
 
-  @fonts {
-    path /core/fonts
-  }
+	header @fonts {
+		Cache-Control "max-age=604800"
+	}
 
-  header @fonts {
-    Cache-Control "max-age=604800"
-  }
+	# gzip encoding
+	encode {
+		gzip 4
+		minimum_length 256
 
-  # gzip encoding
-  encode {
-    gzip 4
-    minimum_length 256
+		match {
+			header Content-Type text/*
+			header Content-Type application/json*
+			header Content-Type application/javascript*
+			header Content-Type application/xhtml+xml*
+			header Content-Type application/atom+xml*
+			header Content-Type application/rss+xml*
+			header Content-Type image/svg+xml*
+			header Content-Type application/ld+json*
+			header Content-Type application/manifest+json*
+			header Content-Type application/vnd.geo+json*
+			header Content-Type application/vnd.ms-fontobject*
+			header Content-Type application/x-font-ttf*
+			header Content-Type application/x-web-app-manifest+json*
+			header Content-Type application/xml*
+			header Content-Type font/opentype*
+			header Content-Type image/bmp*
+			header Content-Type image/x-icon*
+			header Content-Type text/cache-manifest*
+		}
+	}
 
-    match {
-      header Content-Type text/*
-      header Content-Type application/json*
-      header Content-Type application/javascript*
-      header Content-Type application/xhtml+xml*
-      header Content-Type application/atom+xml*
-      header Content-Type application/rss+xml*
-      header Content-Type image/svg+xml*
-      header Content-Type application/ld+json*
-      header Content-Type application/manifest+json*
-      header Content-Type application/vnd.geo+json*
-      header Content-Type application/vnd.ms-fontobject*
-      header Content-Type application/x-font-ttf*
-      header Content-Type application/x-web-app-manifest+json*
-      header Content-Type application/xml*
-      header Content-Type font/opentype*
-      header Content-Type image/bmp*
-      header Content-Type image/x-icon*
-      header Content-Type text/cache-manifest*
-    }
-  }
+	# .htaccess / data / config / ... shouldn't be accessible from outside
+	@forbidden {
+		path /.htaccess
+		path /.user.ini
+		path /.xml
+		path /3rdparty/*
+		path /autotest
+		path /build/*
+		path /config/*
+		path /console
+		path /console.php
+		path /data/*
+		path /db_
+		path /db_structure
+		path /indie
+		path /issue
+		path /lib/*
+		path /occ
+		path /README
+		path /templates/*
+		path /tests/*
+	}
 
-  # .htaccess / data / config / ... shouldn't be accessible from outside
-  @forbidden {
-    path    /.htaccess
-		path    /.user.ini
-    path    /.xml
-    path    /3rdparty/*
-    path    /autotest
-    path    /build/*
-    path    /config/*
-    path    /console
-    path    /console.php
-    path    /data/*
-    path    /db_
-    path    /db_structure
-    path    /indie
-    path    /issue
-    path    /lib/*
-    path    /occ
-    path    /README
-    path    /templates/*
-    path    /tests/*
-  }
-
-  respond @forbidden 404
-  # not sure if this is 100% safe, but it looks nicer when you hit a 404
-  # rewrite @forbidden '/index.php/error/404'
+	respond @forbidden 404
+	# not sure if this is 100% safe, but it looks nicer when you hit a 404
+	# rewrite @forbidden '/index.php/error/404'
 }

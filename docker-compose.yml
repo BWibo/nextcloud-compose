@@ -8,9 +8,18 @@ volumes:
   nextcloud_caddy_data:
     external: true
 
-  # Comment out nextcloud_data volume, if using bind mount
+  # Comment out and use code below to use a bind mount for data folder
   nextcloud_data:
     external: true
+
+  # Use this, if using bind mount
+  # nextcloud_data:
+  #   driver: local
+  #   driver_opts:
+  #     type: none
+  #     o: bind
+  #     device: "${PWD}/data"
+
   nextcloud_db_data:
     external: true
 
@@ -43,8 +52,6 @@ services:
       - nextcloud_caddy_data:/data
       - nextcloud_data:/var/www/html:ro
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
-    volumes_from:
-      - app
     logging:
       options:
         max-size: ${DOCKER_LOGGING_MAX_SIZE:?DOCKER_LOGGING_MAX_SIZE not set}
@@ -122,8 +129,6 @@ services:
     restart: unless-stopped
     volumes:
       - nextcloud_data:/var/www/html
-      # To bind mount data use e.g. this.
-      # - ./data:/var/www/html
     environment:
       NEXTCLOUD_TRUSTED_DOMAINS: ${DOMAIN:?DOMAIN not set}
       NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER:?NEXTCLOUD_ADMIN_USER not set}

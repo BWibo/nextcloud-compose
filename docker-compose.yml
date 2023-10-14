@@ -41,6 +41,7 @@ services:
       - net
     volumes:
       - nextcloud_caddy_data:/data
+      - nextcloud_data:/var/www/html:ro
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
     volumes_from:
       - app

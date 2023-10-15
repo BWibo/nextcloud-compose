@@ -15,12 +15,13 @@
 {$TLS_DOMAINS} {
 	# Static content
 	root * /var/www/html
-	file_server
 
 	# PHP fast cgi
 	php_fastcgi app:9000 {
 		env front_controller_active true
 	}
+
+	file_server
 
 	# Redirects for DAV apps
 	redir /.well-known/carddav /remote.php/dav/ 301

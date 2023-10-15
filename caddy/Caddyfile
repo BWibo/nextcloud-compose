@@ -13,6 +13,11 @@
 }
 
 {$TLS_DOMAINS} {
+	# Log requests to sdtout, only recommended for debugging
+	# log {
+	# 	output stdout
+	# }
+
 	# Static content
 	root * /var/www/html
 

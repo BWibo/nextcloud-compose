@@ -28,14 +28,7 @@
     docker compose up -d --build
     ```
 
-## :book: Content
-
-- [:zzz: TL;DR](#zzz-tldr)
-  - [Configuration](#configuration)
-  - [Run Nextcloud](#run-nextcloud)
-- [:chart\_with\_upwards\_trend: Imaginary support](#chart_with_upwards_trend-imaginary-support)
-
-## :rocket: Usage
+## :rocket: Basic usage
 
 ### Create volumes
 

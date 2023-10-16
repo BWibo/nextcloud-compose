@@ -1,6 +1,41 @@
-# Nextcloud using Docker compose, Postgres and Caddy reverse proxy
+<h1 align="center">Nextcloud using Docker compose, Postgres and Caddy reverse proxy</h1>
 
-## Quick start
+## :zzz: TL;DR
+
+1. Set domain and eMail address in `.env`
+
+    ```bash
+    # General settings
+    # Domain used for trusted domains (config.php)
+    DOMAIN=localhost
+
+    # Domains for TLS certificates. Items separated by comma + space: ", "
+    TLS_DOMAINS="localhost, nextcloud.local"
+    ADMIN_EMAIL=a@b.de
+   ```
+
+2. Create volumes
+
+    ```bash
+    docker volume create nextcloud_caddy_data
+    docker volume create nextcloud_data
+    docker volume create nextcloud_db_data
+    ```
+
+3. Deploy Nextcloud
+
+    ```bash
+    docker compose up -d --build
+    ```
+
+## :book: Content
+
+- [:zzz: TL;DR](#zzz-tldr)
+  - [Configuration](#configuration)
+  - [Run Nextcloud](#run-nextcloud)
+- [:chart\_with\_upwards\_trend: Imaginary support](#chart_with_upwards_trend-imaginary-support)
+
+## :rocket: Usage
 
 ### Create volumes
 
@@ -12,6 +47,7 @@ docker volume create nextcloud_db_data
 
 > **Note:** To use a local folder on your server (bind mount) for Nextcloud data,
 > adapt the volume settings in `docker-compose.yml`.
+>
 > ```yaml
 > # ...
 > volumes:
@@ -76,7 +112,7 @@ docker compose up -d --build
 
 Your instance will be available after a couple of seconds unter https://localhost or https://DOMAIN, as specified in `.env`.
 
-## Imaginary support
+## :chart_with_upwards_trend: Imaginary support
 
 Follow the steps to use a imaginary stack as your image preview provider.
 

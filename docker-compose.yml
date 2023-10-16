@@ -130,7 +130,7 @@ services:
     volumes:
       - nextcloud_data:/var/www/html
     tmpfs:
-      - /tmp
+      - /tmp:exec
     environment:
       NEXTCLOUD_TRUSTED_DOMAINS: ${DOMAIN:?DOMAIN not set}
       NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER:?NEXTCLOUD_ADMIN_USER not set}

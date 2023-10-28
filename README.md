@@ -78,7 +78,7 @@ TLS_DOMAINS="localhost, nextcloud.local"
 ADMIN_EMAIL=a@b.de
 
 # Nextcloud
-NEXTCLOUD_VERSION=27.1.2-fpm
+NEXTCLOUD_VERSION=27.1.3-fpm
 NEXTCLOUD_ADMIN_USER=admin      # Change username and password!!
 NEXTCLOUD_ADMIN_PASSWORD=changeMe
 

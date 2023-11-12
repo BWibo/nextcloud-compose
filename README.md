@@ -87,7 +87,7 @@ PHP_MEMORY_LIMIT=1024M
 PHP_UPLOAD_LIMIT=16G
 
 # DB
-POSTGRES_VERSION=14-alpine
+POSTGRES_VERSION=16-alpine
 POSTGRES_DB=nextcloud           # Change username and password!!
 POSTGRES_USER=nextcloud
 POSTGRES_PASSWORD=changeMe

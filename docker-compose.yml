@@ -200,6 +200,8 @@ services:
       - /dev/dri:/dev/dri # VA-API (omit for NVENC)
     volumes:
       - nextcloud_data:/var/www/html:ro
+    tmpfs:
+      - /tmp:exec
     # runtime: nvidia # (NVENC)
     depends_on:
       app:

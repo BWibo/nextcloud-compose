@@ -187,6 +187,7 @@ services:
         max-file: ${DOCKER_LOGGING_MAX_FILE:?DOCKER_LOGGING_MAX_FILE not set}
   # go-vod ----------------------------------------------------------------------
   go-vod:
+    hostname: go-vod
     image: radialapps/go-vod
     restart: unless-stopped
     environment:

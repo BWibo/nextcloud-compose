@@ -190,6 +190,8 @@ services:
     hostname: go-vod
     image: radialapps/go-vod
     restart: unless-stopped
+    networks:
+      - net
     environment:
       - NEXTCLOUD_HOST=https://${DOMAIN:?DOMAIN not set}
       # - NEXTCLOUD_ALLOW_INSECURE=1 # (self-signed certs or no HTTPS)

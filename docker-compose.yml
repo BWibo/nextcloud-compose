@@ -125,7 +125,7 @@ services:
       no_cache: true
     networks:
       - net
-      - img
+      # - img
     restart: unless-stopped
     volumes:
       - nextcloud_data:/var/www/html
@@ -165,7 +165,7 @@ services:
       no_cache: true
     networks:
       - net
-      - img
+      # - img
     restart: unless-stopped
     volumes_from:
       - app

@@ -1,4 +1,5 @@
 version: '3.8'
+name: nextcloud
 
 # Docs ########################################################################
 # https://github.com/nextcloud/docker

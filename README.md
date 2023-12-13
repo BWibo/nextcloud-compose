@@ -109,8 +109,34 @@ Your instance will be available after a couple of seconds unter https://localhos
 
 Follow the steps to use a imaginary stack as your image preview provider.
 
-1. Deploy imaginary stack: `docker stack deploy -c imaginary.yml imaginary`
+1. Deploy imaginary stack: `docker compose -f imaginary.yml up -d` or `docker stack deploy -c imaginary.yml imaginary`
 2. Uncomment imaginary network in `docker-compose.yml`
 3. Uncomment imaginary settings in `nextcloud.env`
 4. Add Imaginary to preview provider in `config.php`
 5. Re-deploy the stack `docker compose up -d --build`
+
+## :file_folder: Store data in host folder
+
+To store the nextcloud data in a host folder, e.g. to make backups easier, uncomment
+this section in `docker-compose.yml`:
+
+```yaml
+volumes:
+
+# ...
+
+  # Comment out and use code below to use a bind mount for data folder
+  # nextcloud_data:
+  #   external: true
+
+# Use this, if using bind mount
+  nextcloud_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "${PWD}/data"
+```
+
+Create the folder on the host, in this example: ``mkdir data``.
+Then you're ready to deploy the stack `docker compose up -d --build`.

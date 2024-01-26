@@ -119,6 +119,11 @@ services:
   app:
     image: nextcloud:${NEXTCLOUD_VERSION}
     pull_policy: always
+    build:
+      context: nextcloud
+      args:
+        NEXTCLOUD_VERSION: ${NEXTCLOUD_VERSION:?NEXTCLOUD_VERSION not set}
+      no_cache: true
     networks:
       - net
       # - img

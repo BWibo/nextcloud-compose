@@ -47,6 +47,7 @@ services:
     environment:
       TLS_DOMAINS: "${TLS_DOMAINS:?TLS_DOMAINS not set}"
       ADMIN_EMAIL: "${ADMIN_EMAIL:?ADMIN_EMAIL not set}"
+      CADDY_TLS: "${CADDY_TLS}"
     networks:
       - net
     volumes:

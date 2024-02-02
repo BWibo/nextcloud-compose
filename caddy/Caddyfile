@@ -13,6 +13,7 @@
 }
 
 {$TLS_DOMAINS} {
+	{$CADDY_TLS}
 	# Log requests to sdtout, only recommended for debugging
 	# log {
 	# 	output stdout

@@ -188,27 +188,27 @@ services:
         max-size: ${DOCKER_LOGGING_MAX_SIZE:?DOCKER_LOGGING_MAX_SIZE not set}
         max-file: ${DOCKER_LOGGING_MAX_FILE:?DOCKER_LOGGING_MAX_FILE not set}
   # go-vod ----------------------------------------------------------------------
-  go-vod:
-    hostname: go-vod
-    image: radialapps/go-vod
-    restart: unless-stopped
-    networks:
-      - net
-    environment:
-      - NEXTCLOUD_HOST=https://${DOMAIN:?DOMAIN not set}
-      # - NEXTCLOUD_ALLOW_INSECURE=1 # (self-signed certs or no HTTPS)
-      - NVIDIA_VISIBLE_DEVICES=all
-    devices:
-      - /dev/dri:/dev/dri # VA-API (omit for NVENC)
-    volumes:
-      - nextcloud_data:/var/www/html:ro
-    tmpfs:
-      - /tmp:exec
-    # runtime: nvidia # (NVENC)
-    depends_on:
-      app:
-        condition: service_started
-    logging:
-      options:
-        max-size: ${DOCKER_LOGGING_MAX_SIZE:?DOCKER_LOGGING_MAX_SIZE not set}
-        max-file: ${DOCKER_LOGGING_MAX_FILE:?DOCKER_LOGGING_MAX_FILE not set}
+  # go-vod:
+  #   hostname: go-vod
+  #   image: radialapps/go-vod
+  #   restart: unless-stopped
+  #   networks:
+  #     - net
+  #   environment:
+  #     - NEXTCLOUD_HOST=https://${DOMAIN:?DOMAIN not set}
+  #     # - NEXTCLOUD_ALLOW_INSECURE=1 # (self-signed certs or no HTTPS)
+  #     - NVIDIA_VISIBLE_DEVICES=all
+  #   devices:
+  #     - /dev/dri:/dev/dri # VA-API (omit for NVENC)
+  #   volumes:
+  #     - nextcloud_data:/var/www/html:ro
+  #   tmpfs:
+  #     - /tmp:exec
+  #   # runtime: nvidia # (NVENC)
+  #   depends_on:
+  #     app:
+  #       condition: service_started
+  #   logging:
+  #     options:
+  #       max-size: ${DOCKER_LOGGING_MAX_SIZE:?DOCKER_LOGGING_MAX_SIZE not set}
+  #       max-file: ${DOCKER_LOGGING_MAX_FILE:?DOCKER_LOGGING_MAX_FILE not set}

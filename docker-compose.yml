@@ -171,6 +171,8 @@ services:
     restart: unless-stopped
     volumes_from:
       - app
+    tmpfs:
+      - /tmp:exec
     entrypoint: /cron.sh
     environment:
       PHP_MEMORY_LIMIT: ${PHP_MEMORY_LIMIT:?PHP_MEMORY_LIMIT not set}

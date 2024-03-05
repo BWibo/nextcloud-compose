@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 # Crontab entry ---------------------------------------------------------------
+# Note: Make sure restic in on cron's PATH!
 # 0 4 * * * $HOME/myzsh/tools/nextcloud/nextcloud-backup.sh >/dev/null 2>&1
 
 # config ----------------------------------------------------------------------
@@ -27,7 +28,7 @@ printf "\n\n" >> ${LOGFILE}
 # Cleanup restic repos
 # local
 export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_LOCAL}"
-echo "$DRY_RUN"  | xargs \
+echo "$DRY_RUN" | xargs \
 restic prune >> ${LOGFILE} 2>&1
 
 errtmp=$?
@@ -42,7 +43,7 @@ echo "check restic repo - local " $errtmp >> ${LOGFILE}
 
 # Azure
 export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_AZURE}"
-echo "$DRY_RUN"  | xargs \
+echo "$DRY_RUN" | xargs \
 restic prune >> ${LOGFILE} 2>&1
 
 errtmp=$?

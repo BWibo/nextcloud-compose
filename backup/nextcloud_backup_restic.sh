@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 # Crontab entry ---------------------------------------------------------------
+# Note: Make sure restic in on cron's PATH!
 # 0 4 * * * $HOME/myzsh/tools/nextcloud/nextcloud-backup.sh >/dev/null 2>&1
 
 # config ----------------------------------------------------------------------

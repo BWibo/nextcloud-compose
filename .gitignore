@@ -1,2 +1,3 @@
-# Nextcloud data directory
+# Local testing Nextcloud directories
 /data
+/config

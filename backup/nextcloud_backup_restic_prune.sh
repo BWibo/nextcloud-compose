@@ -12,7 +12,7 @@ LOGFILE="${NEXTCLOUD_BACKUP_LOGFILE:-/home/me/nextcloud-backup-restic.log}"
 export RESTIC_PASSWORD="${NEXTCLOUD_RESTIC_PASSWORD:-changeMe}"
 RESTIC_REPOSITORY_LOCAL="${NEXTCLOUD_RESTIC_REPO_LOCAL:-/media/myhdd/restic/nextcloud}"
 RESTIC_REPOSITORY_AZURE="${NEXTCLOUD_RESTIC_REPO_AZURE:-azure:restic:/nextcloud}"
-DRY_RUN="${NEXTCLOUD_RESTIC_DRY_RUN:-}"
+RESTIC_PRUNE_ARGS="${NEXTCLOUD_RESTIC_PRUNE_ARGS:-}"
 
 # Azure Storage Account name and key
 export AZURE_ACCOUNT_NAME="${NEXTCLOUD_AZURE_ACCOUNT_NAME:-accountname}"
@@ -28,7 +28,7 @@ printf "\n\n" >> ${LOGFILE}
 # Cleanup restic repos
 # local
 export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_LOCAL}"
-echo "$DRY_RUN" | xargs \
+echo "$RESTIC_PRUNE_ARGS" | xargs \
 restic prune >> ${LOGFILE} 2>&1
 
 errtmp=$?
@@ -43,7 +43,7 @@ echo "check restic repo - local " $errtmp >> ${LOGFILE}
 
 # Azure
 export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_AZURE}"
-echo "$DRY_RUN" | xargs \
+echo "$RESTIC_PRUNE_ARGS" | xargs \
 restic prune >> ${LOGFILE} 2>&1
 
 errtmp=$?

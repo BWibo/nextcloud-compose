@@ -57,6 +57,12 @@ services:
       options:
         max-size: ${DOCKER_LOGGING_MAX_SIZE:?DOCKER_LOGGING_MAX_SIZE not set}
         max-file: ${DOCKER_LOGGING_MAX_FILE:?DOCKER_LOGGING_MAX_FILE not set}
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:2019/metrics", "||", "exit", "1"]
+      start_period: 60s
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   # Postgres ------------------------------------------------------------------
   db:

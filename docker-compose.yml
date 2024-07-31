@@ -167,6 +167,12 @@ services:
       options:
         max-size: ${DOCKER_LOGGING_MAX_SIZE:?DOCKER_LOGGING_MAX_SIZE not set}
         max-file: ${DOCKER_LOGGING_MAX_FILE:?DOCKER_LOGGING_MAX_FILE not set}
+    healthcheck:
+      test: 'runuser -s /usr/local/bin/php - www-data /var/www/html/occ status 2>/dev/null | grep -e "installed: true" -e "maintenance: false" -e "needsDbUpgrade: false" | wc -l | [ "`cat`" = "3" ]'
+      interval: 60s
+      retries: 5
+      start_period: 10s
+      timeout: 10s
 
   # Cron ----------------------------------------------------------------------
   cron:
@@ -200,6 +206,12 @@ services:
       options:
         max-size: ${DOCKER_LOGGING_MAX_SIZE:?DOCKER_LOGGING_MAX_SIZE not set}
         max-file: ${DOCKER_LOGGING_MAX_FILE:?DOCKER_LOGGING_MAX_FILE not set}
+    healthcheck:
+      test: 'runuser -s /usr/local/bin/php - www-data /var/www/html/occ status 2>/dev/null | grep -e "installed: true" -e "maintenance: false" -e "needsDbUpgrade: false" | wc -l | [ "`cat`" = "3" ]'
+      interval: 60s
+      retries: 5
+      start_period: 10s
+      timeout: 10s
 
   # go-vod ----------------------------------------------------------------------
   # go-vod:

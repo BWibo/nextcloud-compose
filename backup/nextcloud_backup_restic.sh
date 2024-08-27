@@ -40,7 +40,7 @@ docker exec -i --user 33 nextcloud-app-1 ./occ maintenance:mode --on >> ${LOGFIL
 
 errtmp=$?
 ERR=$(($ERR + $errtmp))
-echo "nextcloud enable maintenance mode " $errtmp >> ${LOGFILE} 2>&1
+echo "nextcloud enable maintenance mode" $errtmp >> ${LOGFILE} 2>&1
 printf "\nEnable maintenance mode...done!\n" >> ${LOGFILE}
 
 # Dump database
@@ -62,7 +62,7 @@ docker run -i --rm --name pgdump \
 
 errtmp=$?
 ERR=$(($ERR + $errtmp))
-echo "dump nextcloud db " $errtmp >> ${LOGFILE}
+echo "dump nextcloud db" $errtmp >> ${LOGFILE}
 printf "\nCreate DB dump...done!\n" >> ${LOGFILE}
 
 # Create testic snapshot - local
@@ -98,7 +98,7 @@ docker exec -i --user 33 nextcloud-app-1 ./occ maintenance:mode --off >> ${LOGFI
 
 errtmp=$?
 ERR=$(($ERR + $errtmp))
-echo "nextcloud disable maintenance mode " $errtmp >> ${LOGFILE}
+echo "nextcloud disable maintenance mode" $errtmp >> ${LOGFILE}
 printf "\nDisable maintenance mode...done!\n" >> ${LOGFILE}
 
 # Remove tmp db Backup
@@ -107,7 +107,7 @@ rm -r -f "$BACKUPDIR_DB_TEMP"
 
 errtmp=$?
 ERR=$(($ERR + $errtmp))
-echo "cleanup backup dir " $errtmp >> ${LOGFILE}
+echo "cleanup backup dir" $errtmp >> ${LOGFILE}
 printf "\nCleanup temp dir...done!\n" >> ${LOGFILE}
 
 # Cleanup restic repos
@@ -119,7 +119,7 @@ restic forget >> ${LOGFILE} 2>&1
 
 errtmp=$?
 ERR=$(($ERR + $errtmp))
-echo "cleanup restic snapshots - local " $errtmp >> ${LOGFILE}
+echo "cleanup restic snapshots - local" $errtmp >> ${LOGFILE}
 printf "\nForget no longer needed Restic snapshots - local...done!\n" >> ${LOGFILE}
 
 # Azure
@@ -130,7 +130,7 @@ restic forget >> ${LOGFILE} 2>&1
 
 errtmp=$?
 ERR=$(($ERR + $errtmp))
-echo "cleanup restic snapshots - Azure " $errtmp >> ${LOGFILE}
+echo "cleanup restic snapshots - Azure" $errtmp >> ${LOGFILE}
 printf "\nForget no longer needed Restic snapshots - Azure...done!\n" >> ${LOGFILE}
 
 printf "\n\n" >> ${LOGFILE}

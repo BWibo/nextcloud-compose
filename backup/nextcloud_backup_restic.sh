@@ -31,22 +31,25 @@ DB_PASSWORD="${NEXTCLOUD_DB_PASSWORD:-changeMe}"
 # script ----------------------------------------------------------------------
 ERR=0
 printf "\n\n" >> ${LOGFILE}
-echo "-- Nextcloud backup" `date --utc +%FT%TZ` "-----------------------------" \
-  >> ${LOGFILE}
+echo "-- Nextcloud backup" `date --utc +%FT%TZ` "-----------------------------" >> ${LOGFILE}
 printf "\n\n" >> ${LOGFILE}
 
 # Enable maintenance mode
-docker exec -i --user 33 nextcloud-app-1 ./occ maintenance:mode --on \
-  >> ${LOGFILE} 2>&1
+printf "Enable maintenance mode...\n" >> ${LOGFILE}
+docker exec -i --user 33 nextcloud-app-1 ./occ maintenance:mode --on >> ${LOGFILE} 2>&1
 
 errtmp=$?
 ERR=$(($ERR + $errtmp))
 echo "nextcloud enable maintenance mode " $errtmp >> ${LOGFILE} 2>&1
+printf "\nEnable maintenance mode...done!\n" >> ${LOGFILE}
 
 # Dump database
+printf "\nCleanup temp folders...\n" >> ${LOGFILE}
 rm -r -f "$BACKUPDIR_DB_TEMP" >> ${LOGFILE} 2>&1
 mkdir -p -v "$BACKUPDIR_DB_TEMP" >> ${LOGFILE} 2>&1
+printf "\nCleanup temp folders...done\n" >> ${LOGFILE}
 
+printf "\nCreate DB dump...\n" >> ${LOGFILE}
 docker run -i --rm --name pgdump \
     -v "$BACKUPDIR_DB_TEMP":/data \
     --entrypoint pg_dump \
@@ -60,9 +63,11 @@ docker run -i --rm --name pgdump \
 errtmp=$?
 ERR=$(($ERR + $errtmp))
 echo "dump nextcloud db " $errtmp >> ${LOGFILE}
+printf "\nCreate DB dump...done!\n" >> ${LOGFILE}
 
 # Create testic snapshot - local
 # Local restic repo
+printf "\nCreate Restic snapshot - local...\n" >> ${LOGFILE}
 export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_LOCAL}"
 echo "$RESTIC_ARGS" | xargs \
 restic backup --no-scan \
@@ -72,8 +77,10 @@ restic backup --no-scan \
 errtmp=$?
 ERR=$(($ERR + $errtmp))
 echo "create restic snapshot - local" $errtmp >> ${LOGFILE}
+printf "\nCreate Restic snapshot - local...done!\n" >> ${LOGFILE}
 
 # Create restic snapshot - Azure
+printf "\nCreate Restic snapshot - Azure...\n" >> ${LOGFILE}
 export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_AZURE}"
 echo "$RESTIC_ARGS" | xargs \
 restic backup --no-scan \
@@ -83,24 +90,29 @@ restic backup --no-scan \
 errtmp=$?
 ERR=$(($ERR + $errtmp))
 echo "create restic snapshot - Azure" $errtmp >> ${LOGFILE}
+printf "\nCreate Restic snapshot - Azure...done!\n" >> ${LOGFILE}
 
 # Disable maintenance mode
-docker exec -i --user 33 nextcloud-app-1 ./occ maintenance:mode --off \
-  >> ${LOGFILE} 2>&1
+printf "\nDisable maintenance mode...\n" >> ${LOGFILE}
+docker exec -i --user 33 nextcloud-app-1 ./occ maintenance:mode --off >> ${LOGFILE} 2>&1
 
 errtmp=$?
 ERR=$(($ERR + $errtmp))
 echo "nextcloud disable maintenance mode " $errtmp >> ${LOGFILE}
+printf "\nDisable maintenance mode...done!\n" >> ${LOGFILE}
 
 # Remove tmp db Backup
+printf "\nCleanup temp dir...\n" >> ${LOGFILE}
 rm -r -f "$BACKUPDIR_DB_TEMP"
 
 errtmp=$?
 ERR=$(($ERR + $errtmp))
 echo "cleanup backup dir " $errtmp >> ${LOGFILE}
+printf "\nCleanup temp dir...done!\n" >> ${LOGFILE}
 
 # Cleanup restic repos
 # local
+printf "\nForget no longer needed Restic snapshots - local...\n" >> ${LOGFILE}
 export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_LOCAL}"
 echo "$FORGET_POLICY" "$RESTIC_ARGS"  | xargs \
 restic forget >> ${LOGFILE} 2>&1
@@ -108,8 +120,10 @@ restic forget >> ${LOGFILE} 2>&1
 errtmp=$?
 ERR=$(($ERR + $errtmp))
 echo "cleanup restic snapshots - local " $errtmp >> ${LOGFILE}
+printf "\nForget no longer needed Restic snapshots - local...done!\n" >> ${LOGFILE}
 
 # Azure
+printf "\nForget no longer needed Restic snapshots - Azure...\n" >> ${LOGFILE}
 export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_AZURE}"
 echo "$FORGET_POLICY" "$RESTIC_ARGS"  | xargs \
 restic forget >> ${LOGFILE} 2>&1
@@ -117,9 +131,9 @@ restic forget >> ${LOGFILE} 2>&1
 errtmp=$?
 ERR=$(($ERR + $errtmp))
 echo "cleanup restic snapshots - Azure " $errtmp >> ${LOGFILE}
+printf "\nForget no longer needed Restic snapshots - Azure...done!\n" >> ${LOGFILE}
 
 printf "\n\n" >> ${LOGFILE}
 echo "Total ERR" $ERR >> ${LOGFILE}
-echo "-- Nextcloud backup" `date --utc +%FT%TZ` "done!------------------------" \
-  >> ${LOGFILE}
+echo "-- Nextcloud backup" `date --utc +%FT%TZ` "done!------------------------" >> ${LOGFILE}
 printf "\n\n" >> ${LOGFILE}

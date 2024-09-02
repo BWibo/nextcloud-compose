@@ -27,6 +27,7 @@ printf "\n\n" >> ${LOGFILE}
 
 # Cleanup restic repos
 # local
+printf "\nPruning repo - local...\n" >> ${LOGFILE}
 export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_LOCAL}"
 echo "$RESTIC_PRUNE_ARGS" | xargs \
 restic prune >> ${LOGFILE} 2>&1
@@ -34,14 +35,18 @@ restic prune >> ${LOGFILE} 2>&1
 errtmp=$?
 ERR=$(($ERR + $errtmp))
 echo "prune restic snapshots - local " $errtmp >> ${LOGFILE}
+printf "\nPruning repo - local...done!\n" >> ${LOGFILE}
 
+printf "\nChecking repo - local...\n" >> ${LOGFILE}
 restic check >> ${LOGFILE} 2>&1
 
 errtmp=$?
 ERR=$(($ERR + $errtmp))
-echo "check restic repo - local " $errtmp >> ${LOGFILE}
+echo "check restic repo - local" $errtmp >> ${LOGFILE}
+printf "\nChecking repo - local...done!\n" >> ${LOGFILE}
 
 # Azure
+printf "\nPruning repo - Azure...\n" >> ${LOGFILE}
 export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_AZURE}"
 echo "$RESTIC_PRUNE_ARGS" | xargs \
 restic prune >> ${LOGFILE} 2>&1
@@ -49,12 +54,15 @@ restic prune >> ${LOGFILE} 2>&1
 errtmp=$?
 ERR=$(($ERR + $errtmp))
 echo "prune restic snapshots - Azure " $errtmp >> ${LOGFILE}
+printf "\nPruning repo - Azure...done!\n" >> ${LOGFILE}
 
+printf "\nChecking repo - Azure...\n" >> ${LOGFILE}
 restic check >> ${LOGFILE} 2>&1
 
 errtmp=$?
 ERR=$(($ERR + $errtmp))
 echo "check restic repo - Azure " $errtmp >> ${LOGFILE}
+printf "\nChecking repo - Azure...done!\n" >> ${LOGFILE}
 
 printf "\n\n" >> ${LOGFILE}
 echo "Total ERR" $ERR >> ${LOGFILE}

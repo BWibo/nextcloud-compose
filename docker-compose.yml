@@ -22,6 +22,10 @@ volumes:
 
   nextcloud_db_data:
     external: true
+  certs:
+  acme:
+  vhost.d:
+  html:
 
 # Networks ####################################################################
 networks:
@@ -32,37 +36,113 @@ networks:
   # img:
   #   name: imaginary_imaginary
   #   external: true
+  proxy-tier:
+
 
 # Services ####################################################################
 services:
-  # Caddy ---------------------------------------------------------------------
-  caddy:
-    image: caddy:alpine
-    pull_policy: always
-    restart: unless-stopped
-    ports:
-      - 80:80
-      - 443:443
+
+  # web -----------------------------------------------------------------------
+  web:
+    build: ./web
+    restart: always
+    volumes_from:
+      - app:z,ro
+    # volumes:
+    #   - nextcloud:/var/www/html:z,ro
+    #   # NOTE: The `volumes` included here should match those of the `app` container (unless you know what you're doing)
     environment:
-      TLS_DOMAINS: "${TLS_DOMAINS:?TLS_DOMAINS not set}"
-      ADMIN_EMAIL: "${ADMIN_EMAIL:?ADMIN_EMAIL not set}"
-      CADDY_TLS: "${CADDY_TLS}"
+      - VIRTUAL_HOST="${TLS_DOMAINS:?TLS_DOMAINS not set}"
+      - LETSENCRYPT_HOST="${TLS_DOMAINS:?TLS_DOMAINS not set}"
+      - LETSENCRYPT_EMAIL="${ADMIN_EMAIL:?ADMIN_EMAIL not set}"
+    depends_on:
+      - app
     networks:
+      - proxy-tier
       - net
-    volumes:
-      - nextcloud_caddy_data:/data
-      - nextcloud_data:/var/www/html:ro
-      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
     logging:
       options:
         max-size: ${DOCKER_LOGGING_MAX_SIZE:?DOCKER_LOGGING_MAX_SIZE not set}
         max-file: ${DOCKER_LOGGING_MAX_FILE:?DOCKER_LOGGING_MAX_FILE not set}
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "127.0.0.1:2019/metrics"]
-      interval: 10s
-      retries: 3
-      start_period: 5s
-      timeout: 5s
+
+  # proxy ---------------------------------------------------------------------
+  proxy:
+    build: ./proxy
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    labels:
+      - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy"
+    volumes:
+      - certs:/etc/nginx/certs:z,ro
+      - vhost.d:/etc/nginx/vhost.d:z
+      - html:/usr/share/nginx/html:z
+      - /var/run/docker.sock:/tmp/docker.sock:z,ro
+    networks:
+      - proxy-tier
+    logging:
+      options:
+        max-size: ${DOCKER_LOGGING_MAX_SIZE:?DOCKER_LOGGING_MAX_SIZE not set}
+        max-file: ${DOCKER_LOGGING_MAX_FILE:?DOCKER_LOGGING_MAX_FILE not set}
+
+  # letsencrypt-companion -----------------------------------------------------
+  letsencrypt-companion:
+    image: nginxproxy/acme-companion
+    restart: always
+    volumes:
+      - certs:/etc/nginx/certs:z
+      - acme:/etc/acme.sh:z
+      - vhost.d:/etc/nginx/vhost.d:z
+      - html:/usr/share/nginx/html:z
+      - /var/run/docker.sock:/var/run/docker.sock:z,ro
+    environment:
+      - DEFAULT_EMAIL=
+    networks:
+      - proxy-tier
+    depends_on:
+      - proxy
+    logging:
+      options:
+        max-size: ${DOCKER_LOGGING_MAX_SIZE:?DOCKER_LOGGING_MAX_SIZE not set}
+        max-file: ${DOCKER_LOGGING_MAX_FILE:?DOCKER_LOGGING_MAX_FILE not set}
+    # healthcheck:
+    #   test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "127.0.0.1:2019/metrics"]
+    #   interval: 10s
+    #   retries: 3
+    #   start_period: 5s
+    #   timeout: 5s
+
+
+
+  # Caddy ---------------------------------------------------------------------
+  # caddy:
+  #   image: caddy:alpine
+  #   pull_policy: always
+  #   restart: unless-stopped
+  #   ports:
+  #     - 80:80
+  #     - 443:443
+  #   environment:
+  #     TLS_DOMAINS: "${TLS_DOMAINS:?TLS_DOMAINS not set}"
+  #     ADMIN_EMAIL: "${ADMIN_EMAIL:?ADMIN_EMAIL not set}"
+  #     CADDY_TLS: "${CADDY_TLS}"
+  #   networks:
+  #     - net
+  #   volumes:
+  #     - nextcloud_caddy_data:/data
+  #     - nextcloud_data:/var/www/html:ro
+  #     - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+  #   logging:
+  #     options:
+  #       max-size: ${DOCKER_LOGGING_MAX_SIZE:?DOCKER_LOGGING_MAX_SIZE not set}
+  #       max-file: ${DOCKER_LOGGING_MAX_FILE:?DOCKER_LOGGING_MAX_FILE not set}
+  #   healthcheck:
+  #     test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "127.0.0.1:2019/metrics"]
+  #     interval: 10s
+  #     retries: 3
+  #     start_period: 5s
+  #     timeout: 5s
 
   # Postgres ------------------------------------------------------------------
   db:
@@ -162,6 +242,8 @@ services:
       db:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      proxy:
         condition: service_started
     logging:
       options:

@@ -70,7 +70,7 @@ services:
   #     retries: 3
   #     start_period: 5s
   #     timeout: 5s
-s
+
   # proxy ---------------------------------------------------------------------
   proxy:
     build: ./proxy

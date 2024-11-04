@@ -245,7 +245,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER not set}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD not set}
       PHP_MEMORY_LIMIT: ${PHP_MEMORY_LIMIT:?PHP_MEMORY_LIMIT not set}
-      # PHP_UPLOAD_LIMIT: ${PHP_UPLOAD_LIMIT:?PHP_UPLOAD_LIMIT not set}
       TZ: 'Europe/Berlin'
     env_file:
       - nextcloud.env

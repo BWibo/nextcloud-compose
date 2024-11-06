@@ -3,12 +3,10 @@
 
 # Volumes #####################################################################
 volumes:
-  nextcloud_caddy_data:
-    external: true
 
   # Comment out and use code below to use a bind mount for data folder
   nextcloud_data:
-    external: true
+    # external: true
 
   # Use this, if using bind mount
   # nextcloud_data:
@@ -19,7 +17,8 @@ volumes:
   #     device: "${PWD}/data"
 
   nextcloud_db_data:
-    external: true
+    # external: true
+
   certs:
   acme:
   vhost.d:
@@ -43,7 +42,8 @@ services:
   # web -----------------------------------------------------------------------
   web:
     build: ./web
-    restart: always
+    pull_policy: always
+    restart: unless-stopped
     volumes_from:
       - app:z,ro
     # volumes:
@@ -72,7 +72,8 @@ services:
   # proxy ---------------------------------------------------------------------
   proxy:
     build: ./proxy
-    restart: always
+    pull_policy: always
+    restart: unless-stopped
     ports:
       - 80:80
       - 443:443
@@ -100,7 +101,8 @@ services:
   # letsencrypt-companion -----------------------------------------------------
   letsencrypt-companion:
     image: nginxproxy/acme-companion
-    restart: always
+    pull_policy: always
+    restart: unless-stopped
     volumes:
       - certs:/etc/nginx/certs:z
       - acme:/etc/acme.sh:z
@@ -123,35 +125,6 @@ services:
     #   retries: 3
     #   start_period: 5s
     #   timeout: 5s
-
-  # Caddy ---------------------------------------------------------------------
-  # caddy:
-  #   image: caddy:alpine
-  #   pull_policy: always
-  #   restart: unless-stopped
-  #   ports:
-  #     - 80:80
-  #     - 443:443
-  #   environment:
-  #     TLS_DOMAINS: "${TLS_DOMAINS:?TLS_DOMAINS not set}"
-  #     ADMIN_EMAIL: "${ADMIN_EMAIL:?ADMIN_EMAIL not set}"
-  #     CADDY_TLS: "${CADDY_TLS}"
-  #   networks:
-  #     - net
-  #   volumes:
-  #     - nextcloud_caddy_data:/data
-  #     - nextcloud_data:/var/www/html:ro
-  #     - ./caddy/Caddyfile:/etc/caddy/Caddyfile
-  #   logging:
-  #     options:
-  #       max-size: ${DOCKER_LOGGING_MAX_SIZE:?DOCKER_LOGGING_MAX_SIZE not set}
-  #       max-file: ${DOCKER_LOGGING_MAX_FILE:?DOCKER_LOGGING_MAX_FILE not set}
-  #   healthcheck:
-  #     test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "127.0.0.1:2019/metrics"]
-  #     interval: 10s
-  #     retries: 3
-  #     start_period: 5s
-  #     timeout: 5s
 
   # Postgres ------------------------------------------------------------------
   db:

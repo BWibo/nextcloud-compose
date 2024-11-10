@@ -62,12 +62,13 @@ services:
       options:
         max-size: ${DOCKER_LOGGING_MAX_SIZE:?DOCKER_LOGGING_MAX_SIZE not set}
         max-file: ${DOCKER_LOGGING_MAX_FILE:?DOCKER_LOGGING_MAX_FILE not set}
-  #   healthcheck:
-  #     test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "127.0.0.1:2019/metrics"]
-  #     interval: 10s
-  #     retries: 3
-  #     start_period: 5s
-  #     timeout: 5s
+    healthcheck:
+      # test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "127.0.0.1:2019/metrics"]
+      test: "curl -f http://localhost/login"
+      interval: 10s
+      retries: 3
+      start_period: 5s
+      timeout: 5s
 
   # proxy ---------------------------------------------------------------------
   proxy:

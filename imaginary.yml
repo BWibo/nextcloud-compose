@@ -1,5 +1,3 @@
-version: '3.8'
-
 networks:
   imaginary:
     driver: overlay
@@ -20,9 +18,10 @@ services:
       - CAP_SYS_NICE
     deploy:
       # mode: global
-      replicas: 3
-      endpoint_mode: dnsrr
-      # placement:
-        # constraints:
-          # - "node.role==worker"
+      replicas: 6
+      endpoint_mode: vip
+      # endpoint_mode: dnsrr
+      placement:
+        constraints:
+          - "node.role==worker"
           # - "node.hostname==THEHOSTNAME"

@@ -14,47 +14,169 @@
 
 {$TLS_DOMAINS} {
 	{$CADDY_TLS}
-	# Log requests to sdtout, only recommended for debugging
+
+	# Log requests to stdout, only recommended for debugging
 	# log {
 	# 	output stdout
 	# }
 
-	# Static content
-	root * /var/www/html
-
-	# PHP fast cgi
-	php_fastcgi app:9000 {
-		env front_controller_active true
+	# Set max upload size and increase upload timeout (matching nginx config)
+	request_body {
+		max_size 512MB
 	}
 
-	file_server
+	# Set timeouts (matching nginx client_body_timeout 300s)
+	timeouts {
+		read_body 300s
+		read_header 10s
+		write 300s
+		idle 300s
+	}
 
-	# Redirects for DAV apps
-	redir /.well-known/carddav /remote.php/dav/ 301
-	redir /.well-known/caldav /remote.php/dav/ 301
+	# Static content root
+	root * /var/www/html
 
-	respond /.well-known/acme-challenge 404
-	respond /.well-known/pki-validation 404
+	# Block forbidden paths - Rules borrowed from `.htaccess` to hide certain paths from clients
+	@forbidden {
+		path /build /build/*
+		path /tests /tests/*
+		path /config /config/*
+		path /lib /lib/*
+		path /3rdparty /3rdparty/*
+		path /templates /templates/*
+		path /data /data/*
+		path /.*
+		path /autotest /autotest/*
+		path /occ /occ/*
+		path /issue /issue/*
+		path /indie /indie/*
+		path /db_*
+		path /console /console.php
+	}
+	respond @forbidden 404
 
-	# redir /.well-known/* /index.php/.well-known/webfinger 301
-	# redir /.well-known/nodeinfo /index.php/.well-known/nodeinfo 301
-	redir /.well-known/* /index.php{uri} 301
+	# Microsoft DAV client redirect - Rule borrowed from `.htaccess`
+	@dav_client {
+		header User-Agent *DavClnt*
+		path /
+	}
+	redir @dav_client /remote.php/webdav/{query} 302
 
-	# Headers
+	# robots.txt
+	@robots {
+		path /robots.txt
+	}
+	handle @robots {
+		respond 200
+		header Content-Type "text/plain"
+	}
+
+	# .well-known handling
+	# Make a regex exception for `/.well-known` so that clients can still access it
+	handle /.well-known/carddav {
+		redir * /remote.php/dav/ 301
+	}
+	handle /.well-known/caldav {
+		redir * /remote.php/dav/ 301
+	}
+	handle /.well-known/acme-challenge* {
+		respond 404
+	}
+	handle /.well-known/pki-validation* {
+		respond 404
+	}
+	# Let Nextcloud's API for `/.well-known` URIs handle all other requests
+	handle /.well-known/* {
+		redir * /index.php{uri} 301
+	}
+
+	# Rule borrowed from `.htaccess` - /remote redirect
+	handle /remote {
+		redir * /remote.php{uri} 301
+	}
+
+	# Static files with cache control and immutable directive
+	# Matching nginx: location ~ \.(?:css|js|mjs|svg|gif|ico|jpg|png|webp|wasm|tflite|map|ogg|flac)$
+	@static_assets {
+		path *.css *.js *.mjs *.svg *.gif *.ico *.jpg *.png *.webp *.wasm *.tflite *.map *.ogg *.flac
+	}
+	handle @static_assets {
+		# try_files $uri /index.php$request_uri
+		try_files {path} /index.php{uri}
+
+		header Cache-Control "public, max-age=15778463, immutable"
+		header Referrer-Policy "no-referrer"
+		header X-Content-Type-Options "nosniff"
+		header X-Frame-Options "SAMEORIGIN"
+		header X-Permitted-Cross-Domain-Policies "none"
+		header X-Robots-Tag "noindex, nofollow"
+		header X-XSS-Protection "1; mode=block"
+
+		# Disable access logging for assets (optional)
+		# log { output discard }
+
+		file_server
+	}
+
+	# Font files - Cache-Control policy borrowed from `.htaccess`
+	@fonts {
+		path *.otf *.woff *.woff2
+	}
+	handle @fonts {
+		try_files {path} /index.php{uri}
+		header Cache-Control "public, max-age=604800"
+		file_server
+	}
+
+	# PHP-FPM handling
+	# Ensure this block, which passes PHP files to the PHP process, is above the blocks
+	# which handle static assets. This handles the rewrite logic from nginx config.
+	@php_files {
+		path *.php
+		path *.php/*
+	}
+	handle @php_files {
+		# Required for legacy support - rewrite rule from nginx
+		# Matches: ^/(?!index|remote|public|cron|core\/ajax\/update|status|ocs\/v[12]|updater\/.+|ocs-provider\/.+|.+\/richdocumentscode(_arm64)?\/proxy)
+		php_fastcgi app:9000 {
+			# Environment variables
+			env front_controller_active true
+			env modHeadersAvailable true
+
+			# Split path info
+			split .php
+
+			# Resolve root symlink
+			resolve_root_symlink
+
+			# Request buffering off (matching fastcgi_request_buffering off)
+			request_buffering off
+
+			# Match nginx fastcgi_read_timeout and related settings
+			read_timeout 300s
+			write_timeout 300s
+		}
+	}
+
+	# Default try_files behavior - always provides the desired behavior
+	# Matching: try_files $uri $uri/ /index.php$request_uri
+	try_files {path} {path}/ /index.php{uri}
+
+	# Security headers - HTTP response headers borrowed from Nextcloud `.htaccess`
 	header {
-		# If staging acme_ca is enabled, this needs to be commented out!
-		# Otherwise, it is not possible to add browser exception
-		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		# HSTS settings
+		# WARNING: Only add the preload option once you read about
+		# the consequences in https://hstspreload.org/
+		# Uncomment if staging acme_ca is disabled
+		Strict-Transport-Security "max-age=15768000; includeSubDomains; preload"
 
 		# More security hardening headers
 		Referrer-Policy "no-referrer"
 		X-Content-Type-Options "nosniff"
-		X-Download-Options "noopen"
 		X-Frame-Options "SAMEORIGIN"
 		X-Permitted-Cross-Domain-Policies "none"
 		X-Robots-Tag "noindex, nofollow"
 		X-XSS-Protection "1; mode=block"
-		# Permissions-Policy "interest-cohort=()"
 
 		# Remove X-Powered-By header, which is an information leak
 		-X-Powered-By
@@ -63,31 +185,13 @@
 		Location http:// https://
 	}
 
-	# Cache control
-	@static {
-		file
-		path *.css *.js *.svg *.gif
-	}
-
-	header @static {
-		Cache-Control "max-age=360"
-	}
-
-	@fonts {
-		path /core/fonts
-	}
-
-	header @fonts {
-		Cache-Control "max-age=604800"
-	}
-
-	# gzip encoding
+	# Enable gzip compression
+	# Matching nginx gzip settings: gzip_comp_level 4, gzip_min_length 256
 	encode {
 		gzip 4
 		minimum_length 256
 
-
-
+		# gzip_types from nginx config
 		match {
 			header Content-Type application/atom+xml*
 			header Content-Type text/javascript*
@@ -98,10 +202,10 @@
 			header Content-Type application/rss+xml*
 			header Content-Type application/vnd.geo+json*
 			header Content-Type application/vnd.ms-fontobject*
-			header Content-Type application/wasm*
 			header Content-Type application/x-font-ttf*
 			header Content-Type application/x-web-app-manifest+json*
-			header Content-Type application/xhtml+xml application/xml*
+			header Content-Type application/xhtml+xml*
+			header Content-Type application/xml*
 			header Content-Type font/opentype*
 			header Content-Type image/bmp*
 			header Content-Type image/svg+xml*
@@ -117,30 +221,6 @@
 		}
 	}
 
-	# .htaccess / data / config / ... shouldn't be accessible from outside
-	@forbidden {
-		path /.htaccess
-		path /.user.ini
-		path /.xml
-		path /3rdparty/*
-		path /autotest
-		path /build/*
-		path /config/*
-		path /console
-		path /console.php
-		path /data/*
-		path /db_
-		path /db_structure
-		path /indie
-		path /issue
-		path /lib/*
-		path /occ
-		path /README
-		path /templates/*
-		path /tests/*
-	}
-
-	respond @forbidden 404
-	# not sure if this is 100% safe, but it looks nicer when you hit a 404
-	# rewrite @forbidden '/index.php/error/404'
+	# File server for everything else
+	file_server
 }

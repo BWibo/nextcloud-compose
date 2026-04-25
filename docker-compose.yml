@@ -28,6 +28,10 @@ networks:
   net:
     driver: bridge
     attachable: true
+    ipam:
+      driver: default
+      config:
+        - subnet: ${DOCKER_NET_SUBNET:?DOCKER_NET_SUBNET not set}
   # Uncomment, if imaginary stack should be used (see imaginary.yml)
   # img:
   #   name: imaginary_imaginary
@@ -48,7 +52,8 @@ services:
       ADMIN_EMAIL: "${ADMIN_EMAIL:?ADMIN_EMAIL not set}"
       CADDY_TLS: "${CADDY_TLS}"
     networks:
-      - net
+      net:
+        ipv4_address: ${CADDY_IP:?CADDY_IP not set}
     volumes:
       - nextcloud_caddy_data:/data
       - nextcloud_data:/var/www/html:ro

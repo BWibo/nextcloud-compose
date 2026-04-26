@@ -10,6 +10,12 @@
 
 	# Uncomment to see headers set by upstream
 	# debug
+
+	# Trust home lan proxy
+	servers {
+		trusted_proxies static 172.30.0.2/32
+		trusted_proxies_strict
+	}
 }
 
 {$TLS_DOMAINS} {

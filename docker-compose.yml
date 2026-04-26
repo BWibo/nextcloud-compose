@@ -51,6 +51,9 @@ services:
       TLS_DOMAINS: "${TLS_DOMAINS:?TLS_DOMAINS not set}"
       ADMIN_EMAIL: "${ADMIN_EMAIL:?ADMIN_EMAIL not set}"
       CADDY_TLS: "${CADDY_TLS}"
+      # Selects which Caddyfile snippet handles header debug logging.
+      # See .env / caddy/Caddyfile for the on/off values.
+      CADDY_DEBUG_SNIPPET: "${CADDY_DEBUG_SNIPPET:?CADDY_DEBUG_SNIPPET not set}"
     networks:
       net:
         ipv4_address: ${CADDY_IP:?CADDY_IP not set}

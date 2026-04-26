@@ -18,8 +18,55 @@
 	}
 }
 
+# ----------------------------------------------------------------------------
+# Trusted-proxy / real-client-IP debug snippets.
+# Selected at parse time via {$CADDY_DEBUG_SNIPPET} in the site block below.
+# Default (debug_headers_off) is a no-op. Set CADDY_DEBUG_SNIPPET=debug_headers_on
+# in .env and re-run ./caddy_update.sh to enable JSON access logs and the
+# /caddy-debug-headers endpoint.
+# ----------------------------------------------------------------------------
+(debug_headers_off) {
+	# no-op placeholder — header debug logging disabled
+}
+
+(debug_headers_on) {
+	# Per-site JSON access log to stdout. The default JSON encoder serializes
+	# request.headers (incl. X-Forwarded-For/-Proto/-Host, X-Real-IP,
+	# Forwarded, Host), request.remote_ip (TCP peer) and request.client_ip
+	# (parsed via global trusted_proxies). Visible via `docker compose logs caddy`.
+	log {
+		output stdout
+		format json
+	}
+
+	# Plain-text debug endpoint. Curl this to see exactly what Caddy sees
+	# for the headers Nextcloud relies on for real-client-IP attribution.
+	@debug_headers path /caddy-debug-headers
+	handle @debug_headers {
+		header Cache-Control "no-store"
+		header Content-Type "text/plain; charset=utf-8"
+		respond <<HEADERS
+remote_ip:         {http.request.remote.host}
+client_ip:         {http.request.client_ip}
+host:              {http.request.host}
+proto:             {http.request.scheme}
+X-Forwarded-For:   {http.request.header.X-Forwarded-For}
+X-Forwarded-Proto: {http.request.header.X-Forwarded-Proto}
+X-Forwarded-Host:  {http.request.header.X-Forwarded-Host}
+X-Real-IP:         {http.request.header.X-Real-IP}
+Forwarded:         {http.request.header.Forwarded}
+Via:               {http.request.header.Via}
+HEADERS 200
+	}
+}
+
 {$TLS_DOMAINS} {
 	{$CADDY_TLS}
+
+	# Pull in trusted-proxy / real-client-IP debug snippet (see top of file).
+	# Snippet name is supplied via env var; defaults to the no-op snippet.
+	import {$CADDY_DEBUG_SNIPPET}
+
 	# Log requests to sdtout, only recommended for debugging
 	# log {
 	# 	output stdout

@@ -46,10 +46,10 @@
 		header Cache-Control "no-store"
 		header Content-Type "text/plain; charset=utf-8"
 		respond <<HEADERS
-remote_ip:         {http.request.remote.host}
-client_ip:         {http.request.client_ip}
+remote_ip (peer):  {http.request.remote.host}
+client_ip (real):  {client_ip}
 host:              {http.request.host}
-proto:             {http.request.scheme}
+proto (peer):      {http.request.scheme}
 X-Forwarded-For:   {http.request.header.X-Forwarded-For}
 X-Forwarded-Proto: {http.request.header.X-Forwarded-Proto}
 X-Forwarded-Host:  {http.request.header.X-Forwarded-Host}

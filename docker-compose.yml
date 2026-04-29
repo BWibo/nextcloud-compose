@@ -27,7 +27,8 @@ volumes:
 networks:
   net:
     driver: bridge
-    attachable: true
+    attachable: false
+    enable_ipv6: true
     ipam:
       driver: default
       config:

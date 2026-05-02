@@ -54,6 +54,7 @@ services:
       # Selects which Caddyfile snippet handles header debug logging.
       # See .env / caddy/Caddyfile for the on/off values.
       CADDY_DEBUG_SNIPPET: "${CADDY_DEBUG_SNIPPET:?CADDY_DEBUG_SNIPPET not set}"
+      CADDY_TRUSTED_PROXIES: "${CADDY_TRUSTED_PROXIES:?CADDY_TRUSTED_PROXIES not set}"
     networks:
       net:
         ipv4_address: ${CADDY_IP:?CADDY_IP not set}

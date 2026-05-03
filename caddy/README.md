@@ -57,6 +57,45 @@ The `php_fastcgi app:9000` directive then forwards the request (and a normalised
 
 Note: `{http.request.client_ip}` is **not** a valid Caddy placeholder — use `{client_ip}` (or its longer form `{http.vars.client_ip}`).
 
+## Internal docker network (dual-stack)
+
+The compose stack runs the internal `net` bridge as **dual-stack** — both IPv4 and an IPv6 ULA prefix. This is configured by four `.env` variables and one `enable_ipv6: true` flag on the network in `docker-compose.yml`:
+
+| `.env` variable | Default | Purpose |
+|---|---|---|
+| `DOCKER_NET_SUBNET` | `172.20.0.0/24` | IPv4 subnet for the `net` bridge. |
+| `DOCKER_NET_SUBNET_V6` | `fd20:20::/64` | IPv6 ULA subnet for the `net` bridge. Must be inside `fd00::/8` (RFC 4193). |
+| `CADDY_IP` | `172.20.0.10` | Fixed IPv4 address pinned to the Caddy container. Must lie inside `DOCKER_NET_SUBNET`. |
+| `CADDY_IP_V6` | `fd20:20::10` | Fixed IPv6 address pinned to the Caddy container. Must lie inside `DOCKER_NET_SUBNET_V6`. |
+
+All four are referenced with `${VAR:?…}` in `docker-compose.yml`, so the stack refuses to start if any is unset. Other services (`db`, `redis`, `app`, `cron`) get random v4 and v6 addresses from the same subnets via Docker's IPAM — only Caddy is pinned, because Nextcloud's `trusted_proxies` needs to reference a stable address.
+
+### Why dual-stack matters for `trusted_proxies`
+
+When the `app` container resolves `caddy` (or vice versa), Docker's embedded DNS may return either an A or AAAA record depending on the container's resolver and the request path. If `trusted_proxies` only contains the IPv4 address but Caddy actually connects to FPM over IPv6 (or vice versa), Nextcloud sees an untrusted peer, drops the forwarded headers, and reports every request as coming from Caddy itself. **Both** `${CADDY_IP}` and `${CADDY_IP_V6}` must be in `trusted_proxies`.
+
+### Choosing your own subnets
+
+If you change the defaults — typically because `172.20.0.0/24` clashes with an existing LAN, VPN, or Docker network on the host — keep these constraints in mind:
+
+- **IPv4**: any free RFC 1918 range (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`). Avoid CGNAT space (`100.64.0.0/10`) — Tailscale uses it.
+- **IPv6**: any ULA prefix (`fd00::/8`). Best practice is to randomise the 40-bit Global ID per host (e.g. `fd<random40bit>::/64`) so two hosts you later peer over WireGuard / Tailscale don't collide. Avoid `fc00::/8` (reserved, not registered) and link-local `fe80::/10`.
+- **No overlap** with anything the host is already attached to. An overlap silently breaks routing — the host prefers the more specific route and connections to LAN hosts from inside containers (or LAN → container) black-hole.
+- After changing subnets, the bridge must be recreated: `docker compose down && ./create.sh`. Docker won't apply IPAM changes to a live network.
+
+### Verifying the dual-stack setup
+
+```bash
+docker network inspect nextcloud_net | jq '.[0].IPAM.Config, .[0].Containers'
+```
+
+Expected: two `IPAM.Config` entries (the v4 and v6 subnets), and the `caddy` container shows both `IPv4Address: 172.20.0.10/24` and `IPv6Address: fd20:20::10/64`. From inside the `app` container:
+
+```bash
+docker exec -it nextcloud-app-1 sh -c 'getent ahosts caddy'
+# both an A and AAAA line should appear
+```
+
 ## Nextcloud configuration (the downstream half)
 
 Caddy correctly parsing the headers is only half the job. Nextcloud's PHP layer must also be told to trust Caddy's IP, otherwise it treats `REMOTE_ADDR` (i.e. `172.20.0.10`) as the real client and ignores the forwarded headers. The relevant `config.php` keys:

@@ -33,6 +33,7 @@ networks:
       driver: default
       config:
         - subnet: ${DOCKER_NET_SUBNET:?DOCKER_NET_SUBNET not set}
+        - subnet: ${DOCKER_NET_SUBNET_V6:?DOCKER_NET_SUBNET_V6 not set}
   # Uncomment, if imaginary stack should be used (see imaginary.yml)
   # img:
   #   name: imaginary_imaginary
@@ -59,6 +60,7 @@ services:
     networks:
       net:
         ipv4_address: ${CADDY_IP:?CADDY_IP not set}
+        ipv6_address: ${CADDY_IP_V6:?CADDY_IP_V6 not set}
     volumes:
       - nextcloud_caddy_data:/data
       - nextcloud_data:/var/www/html:ro

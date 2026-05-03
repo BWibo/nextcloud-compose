@@ -8,7 +8,7 @@ For a typical deployment the request path looks like this:
 
 ```
 real client ──► (optional) edge LB / TLS terminator ──► Caddy ──► Nextcloud-FPM
-   1.2.3.4             172.30.0.2                  172.20.0.10        app:9000
+   1.2.3.4             172.32.0.2                  172.20.0.10        app:9000
                                                    fd20:20::10
 ```
 
@@ -35,7 +35,7 @@ The global `servers` block (in [`Caddyfile`](Caddyfile)) declares which peer IPs
 
 ```caddyfile
 servers {
-    trusted_proxies static 172.30.0.2/32
+    trusted_proxies static 172.32.0.2/32
     trusted_proxies_strict
 }
 ```
@@ -107,14 +107,14 @@ A plain-text endpoint that echoes back exactly what Caddy sees for a single requ
 curl -k https://your.domain/caddy-debug-headers
 ```
 
-Example output from a deployment behind an upstream LB at `172.30.0.2`:
+Example output from a deployment behind an upstream LB at `172.32.0.2`:
 
 ```text
-remote_ip (peer):  172.30.0.2
-client_ip (real):  172.30.0.40
+remote_ip (peer):  172.32.0.2
+client_ip (real):  172.32.0.40
 host:              cloud.example.com
 proto (peer):      http
-X-Forwarded-For:   172.30.0.40
+X-Forwarded-For:   172.32.0.40
 X-Forwarded-Proto: https
 X-Forwarded-Host:  cloud.example.com
 X-Real-IP:
@@ -124,8 +124,8 @@ Via:               2.0 Caddy
 
 How to read it:
 
-- `remote_ip (peer)` is the upstream LB (`172.30.0.2`) — that matches the `trusted_proxies` entry, so Caddy honours the forwarded headers.
-- `client_ip (real)` is the original client (`172.30.0.40`) — extracted from `X-Forwarded-For` because the peer was trusted. If the peer were *not* trusted, this would equal `remote_ip`.
+- `remote_ip (peer)` is the upstream LB (`172.32.0.2`) — that matches the `trusted_proxies` entry, so Caddy honours the forwarded headers.
+- `client_ip (real)` is the original client (`172.32.0.40`) — extracted from `X-Forwarded-For` because the peer was trusted. If the peer were *not* trusted, this would equal `remote_ip`.
 - `proto (peer)` is `http` because TLS is terminated at the upstream LB and the LB ↔ Caddy hop is plain HTTP. The original client's scheme is in `X-Forwarded-Proto: https`.
 - `X-Real-IP` and `Forwarded` are empty — the upstream LB doesn't emit them. Not a problem; XFF is enough.
 

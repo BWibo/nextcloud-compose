@@ -9,7 +9,10 @@ For a typical deployment the request path looks like this:
 ```
 real client ──► (optional) edge LB / TLS terminator ──► Caddy ──► Nextcloud-FPM
    1.2.3.4             172.30.0.2                  172.20.0.10        app:9000
+                                                   fd20:20::10
 ```
+
+The internal `net` bridge runs dual-stack, so Caddy's container has both an IPv4 (`${CADDY_IP}`) and an IPv6 ULA address (`${CADDY_IP_V6}`). Either may show up as Nextcloud's `REMOTE_ADDR` depending on which stack Docker uses for a given request.
 
 At each hop, the immediate peer's IP shows up as the TCP-level `REMOTE_ADDR`. To preserve the original client identity, every well-behaved proxy in the chain prepends or appends standard "forwarded" headers. Each downstream consumer (Caddy, then Nextcloud) must be told which upstream peers it trusts to set those headers — otherwise it ignores them as untrusted user input.
 
@@ -40,7 +43,7 @@ servers {
 - `trusted_proxies static <cidr>...` — when the immediate peer matches, Caddy parses `X-Forwarded-For` / `Forwarded` to populate `{client_ip}`. Otherwise `{client_ip}` falls back to the TCP peer.
 - `trusted_proxies_strict` — Caddy will *not* forward the request's `X-Forwarded-*` headers upstream when the peer isn't trusted, preventing client-spoofed forwarded headers from reaching Nextcloud.
 
-The `php_fastcgi app:9000` directive then forwards the request (and a normalised `HTTPS=on` / `X-Forwarded-Proto`) to Nextcloud-FPM at the immediate-peer level. Inside Nextcloud, `REMOTE_ADDR` is therefore Caddy's container IP (`${CADDY_IP}` from `.env`, default `172.20.0.10`).
+The `php_fastcgi app:9000` directive then forwards the request (and a normalised `HTTPS=on` / `X-Forwarded-Proto`) to Nextcloud-FPM at the immediate-peer level. Inside Nextcloud, `REMOTE_ADDR` is therefore Caddy's container IP — either `${CADDY_IP}` (default `172.20.0.10`) or `${CADDY_IP_V6}` (default `fd20:20::10`) from `.env`.
 
 ### Placeholders worth knowing
 
@@ -70,10 +73,11 @@ The Nextcloud Docker image's `NC_` env-var handler does **not** support array va
 
 ```bash
 docker exec -i --user 33 nextcloud-app-1 ./occ config:system:set trusted_proxies 0 --value=172.20.0.10
+docker exec -i --user 33 nextcloud-app-1 ./occ config:system:set trusted_proxies 1 --value=fd20:20::10
 docker exec -i --user 33 nextcloud-app-1 ./occ config:system:set overwriteprotocol --value=https
 ```
 
-(Replace `172.20.0.10` with whatever `CADDY_IP` is set to in `.env`.)
+(Replace `172.20.0.10` / `fd20:20::10` with whatever `CADDY_IP` and `CADDY_IP_V6` are set to in `.env`. Both entries are needed because the `net` bridge is dual-stack — the request from Caddy to `app` may arrive over either family.)
 
 ## Debugging the chain
 
@@ -129,7 +133,7 @@ When you're done debugging, set `CADDY_DEBUG_SNIPPET=debug_headers_off` in `.env
 
 ## Common failure modes
 
-- **Nextcloud admin UI / log shows everything coming from `172.20.0.10`** — Caddy is parsing correctly but Nextcloud's `trusted_proxies` does not include Caddy's IP. Set it via `occ` (see above).
+- **Nextcloud admin UI / log shows everything coming from `172.20.0.10` or `fd20:20::10`** — Caddy is parsing correctly but Nextcloud's `trusted_proxies` does not include Caddy's IP for the family in question. Set both v4 and v6 entries via `occ` (see above).
 - **`client_ip (real)` equals `remote_ip (peer)`** — the immediate peer isn't in Caddy's `trusted_proxies` list. Either add its CIDR or check that the request actually transits the proxy you think it does.
 - **`proto (peer)` is `http` but app behaves as if HTTP** — Nextcloud isn't honouring `X-Forwarded-Proto`. Set `overwriteprotocol=https` and confirm `forwarded_for_headers` includes the right header names if you've customised the upstream.
 - **HSTS warnings during Let's Encrypt staging** — the `Strict-Transport-Security` header in the `Caddyfile` is enabled by default; comment it out when using `acme_ca` for staging or `tls internal`, otherwise browsers refuse to add an exception.

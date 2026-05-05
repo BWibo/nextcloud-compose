@@ -57,6 +57,9 @@ services:
       # See .env / caddy/Caddyfile for the on/off values.
       CADDY_DEBUG_SNIPPET: "${CADDY_DEBUG_SNIPPET:?CADDY_DEBUG_SNIPPET not set}"
       CADDY_TRUSTED_PROXIES: "${CADDY_TRUSTED_PROXIES:?CADDY_TRUSTED_PROXIES not set}"
+      # Selects which Caddyfile snippet handles per-site access logging.
+      # See .env / caddy/Caddyfile for the on/off values.
+      CADDY_ACCESS_LOG_SNIPPET: "${CADDY_ACCESS_LOG_SNIPPET:?CADDY_ACCESS_LOG_SNIPPET not set}"
     networks:
       net:
         ipv4_address: ${CADDY_IP:?CADDY_IP not set}

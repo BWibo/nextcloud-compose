@@ -61,6 +61,24 @@ HEADERS 200
 	}
 }
 
+# ----------------------------------------------------------------------------
+# Per-site JSON access log on stdout. Captured by the Docker log driver and
+# visible via `docker compose logs caddy`. Selected at parse time via
+# {$CADDY_ACCESS_LOG_SNIPPET} in the site block. Default (access_log_off) is
+# a no-op. Set CADDY_ACCESS_LOG_SNIPPET=access_log_on in .env and re-run
+# ./caddy_update.sh to enable.
+# ----------------------------------------------------------------------------
+(access_log_off) {
+	# no-op placeholder — access logging disabled
+}
+
+(access_log_on) {
+	log {
+		output stdout
+		format json
+	}
+}
+
 {$TLS_DOMAINS} {
 	{$CADDY_TLS}
 
@@ -68,10 +86,9 @@ HEADERS 200
 	# Snippet name is supplied via env var; defaults to the no-op snippet.
 	import {$CADDY_DEBUG_SNIPPET}
 
-	# Log requests to sdtout, only recommended for debugging
-	# log {
-	# 	output stdout
-	# }
+	# Pull in per-site access log snippet (see top of file).
+	# Snippet name is supplied via env var; defaults to the no-op snippet.
+	import {$CADDY_ACCESS_LOG_SNIPPET}
 
 	# Static content
 	root * /var/www/html

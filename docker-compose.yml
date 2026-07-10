@@ -68,6 +68,7 @@ services:
       - nextcloud_caddy_data:/data
       - nextcloud_data:/var/www/html:ro
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./certs:/certs:ro
     logging:
       options:
         max-size: ${DOCKER_LOGGING_MAX_SIZE:?DOCKER_LOGGING_MAX_SIZE not set}
@@ -157,6 +158,9 @@ services:
     restart: unless-stopped
     volumes:
       - nextcloud_data:/var/www/html
+      # Lifecycle hooks: post-installation runs once on a fresh install,
+      # post-upgrade runs after every version upgrade (see hooks/)
+      - ./hooks:/docker-entrypoint-hooks.d:ro
     tmpfs:
       - /tmp:exec
     environment:

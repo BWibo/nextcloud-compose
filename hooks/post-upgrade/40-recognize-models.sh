@@ -1,0 +1,1 @@
+../post-installation/60-recognize-models.sh

@@ -1,0 +1,1 @@
+../post-installation/50-memories-places.sh

@@ -66,6 +66,9 @@ Nextcloud accepts config via three channels, all wired up here:
 2. `nextcloud.env` env_file — uses the `NC_<key>` prefix convention (e.g. `NC_default_phone_region=DE`) which the upstream image translates into `config.php` keys. See the file's header comment for links to the upstream PR and config reference.
 3. Manual `occ config:system:set` from inside the container for anything not covered above.
 
+### Fresh-install hooks (app pre-install)
+`hooks/post-installation/` is bind-mounted **ro** into the `app` service at `/docker-entrypoint-hooks.d/post-installation`. The upstream entrypoint runs executable `*.sh` scripts there **once, on a fresh install only** (empty `nextcloud_data` volume), after Nextcloud is installed but before first run. `10-install-apps.sh` uses this to `occ app:install` a user-maintained list of apps. It does **not** re-run on restart or upgrade, and it never fires on `cron` (that service overrides the entrypoint with `/cron.sh`). Hooks run as root, so `occ` is invoked via `su ... www-data`.
+
 ### Imaginary (optional preview backend)
 Defined in a separate `imaginary.yml` compose file because it's intended to be deployed as a Swarm stack on its own (`endpoint_mode: vip`, multiple replicas). To enable: deploy that stack, uncomment the `img` external network in `docker-compose.yml`, uncomment the `img` network on `app` and `cron`, and uncomment `NC_preview_imaginary_url` in `nextcloud.env`.
 

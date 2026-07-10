@@ -2,7 +2,14 @@
 
 ## :zzz: TL;DR
 
-1. Set domain and eMail address in `.env`
+1. Create your `.env` from the template (`.env` is gitignored, so your domain and
+   secrets stay out of the repo)
+
+    ```bash
+    cp .env.example .env
+    ```
+
+2. Set at least the domain, admin e-mail and the two `changeMe` passwords in `.env`
 
     ```bash
     # General settings
@@ -12,9 +19,12 @@
     # Domains for TLS certificates. Items separated by comma + space: ", "
     TLS_DOMAINS="localhost, nextcloud.local"
     ADMIN_EMAIL=a@b.de
+
+    NEXTCLOUD_ADMIN_PASSWORD=changeMe
+    POSTGRES_PASSWORD=changeMe
    ```
 
-2. Create volumes
+3. Create volumes
 
     ```bash
     docker volume create nextcloud_caddy_data
@@ -22,7 +32,7 @@
     docker volume create nextcloud_db_data
     ```
 
-3. Deploy Nextcloud
+4. Deploy Nextcloud
 
     ```bash
     docker compose up -d --build
@@ -66,7 +76,12 @@ docker volume create nextcloud_db_data
 
 ### Configuration
 
-Adapt `.env` for your requirements.
+If you haven't already, create your `.env` from the template, then adapt it for your
+requirements (`.env` is gitignored — the tracked template is `.env.example`):
+
+```bash
+cp .env.example .env
+```
 
 ```bash
 # General settings

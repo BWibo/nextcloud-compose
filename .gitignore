@@ -1,3 +1,9 @@
 # Local testing Nextcloud directories
 /data
 /config
+
+# Local dev certs
+/certs/
+
+# Local deployment config / secrets (copy .env.example -> .env)
+/.env

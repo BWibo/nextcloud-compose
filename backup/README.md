@@ -24,7 +24,8 @@ NEXTCLOUD_BACKUPDIR_TEMP="/tmp/nextcloud_backup/db"
 
 # Restic settings
 NEXTCLOUD_RESTIC_INCLUDE_FILE="/nextcloud/backup/include.txt"
-NEXTCLOUD_RESTIC_EXCLUDE_FILE="/nextcloud/backup/exclude.txt"
+NEXTCLOUD_RESTIC_EXCLUDE_FILE_LOCAL="/nextcloud/backup/exclude_local.txt"
+NEXTCLOUD_RESTIC_EXCLUDE_FILE_AZURE="/nextcloud/backup/exclude_azure.txt"
 NEXTCLOUD_RESTIC_PASSWORD="changeMe"
 NEXTCLOUD_RESTIC_FORGET_POLICY="--keep-within-daily 56d --keep-within-weekly 6m --keep-within-monthly 1y --keep-within-yearly 5y"
 NEXTCLOUD_RESTIC_REPO_LOCAL="/media/intenso/restic/nextcloud"

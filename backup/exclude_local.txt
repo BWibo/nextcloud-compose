@@ -1,0 +1,13 @@
+# git folders
+**/.git
+**/.github
+
+# Nextcloud files
+nextcloud-init-sync.lock
+
+# Nextcloud data folder
+data/*
+!data/data
+!data/config
+!data/themes
+!data/custom_apps

@@ -52,6 +52,11 @@ mkdir -p -v "$BACKUPDIR_DB_TEMP" >> ${LOGFILE} 2>&1
 printf "\nCleanup temp folders...done\n" >> ${LOGFILE}
 
 printf "\nCreate DB dump...\n" >> ${LOGFILE}
+# -F d: directory format (parallel-dump friendly, one file per table)
+# -Z 0: no compression, keeps output byte-stable for restic's dedup
+# -j 4: 4 parallel dump workers
+# -f /data/: output directory for the dump
+
 docker run -i --rm --name pgdump \
     -v "$BACKUPDIR_DB_TEMP":/data \
     --entrypoint pg_dump \
@@ -59,7 +64,7 @@ docker run -i --rm --name pgdump \
     -e PGPASSWORD="$DB_PASSWORD" \
   postgres:18-alpine -v \
     -h "$DB_HOST" -U "$DB_USER" \
-    -d "$DB_NAME" -F d -j 4 -f /data/ \
+    -d "$DB_NAME" -F d -Z 0 -j 4 -f /data/ \
     >> ${LOGFILE} 2>&1
 
 errtmp=$?

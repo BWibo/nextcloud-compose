@@ -11,7 +11,8 @@ BACKUPDIR_DB_TEMP="${NEXTCLOUD_BACKUPDIR_TEMP:-/tmp/nextcloud/backup}"
 
 # Restic setings
 INCLUDE_FILE="${NEXTCLOUD_RESTIC_INCLUDE_FILE:-/nextcloud/backup/include.txt}"
-EXCLUDE_FILE="${NEXTCLOUD_RESTIC_EXCLUDE_FILE:-/nextcloud/backup/exclude.txt}"
+EXCLUDE_FILE_LOCAL="${NEXTCLOUD_RESTIC_EXCLUDE_FILE_LOCAL:-/nextcloud/backup/exclude_local.txt}"
+EXCLUDE_FILE_AZURE="${NEXTCLOUD_RESTIC_EXCLUDE_FILE_AZURE:-/nextcloud/backup/exclude_azure.txt}"
 export RESTIC_PASSWORD="${NEXTCLOUD_RESTIC_PASSWORD:-changeMe}"
 FORGET_POLICY="${NEXTCLOUD_RESTIC_FORGET_POLICY:---keep-within-daily 7d --keep-within-weekly 6m}"
 RESTIC_REPOSITORY_LOCAL="${NEXTCLOUD_RESTIC_REPO_LOCAL:-/media/myhdd/restic/nextcloud}"
@@ -68,11 +69,11 @@ printf "\nCreate DB dump...done!\n" >> ${LOGFILE}
 # Create testic snapshot - local
 # Local restic repo
 printf "\nCreate Restic snapshot - local...\n" >> ${LOGFILE}
-export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_LOCAL}"
+export RESTIC_REPOSITORY="${RESTIC_REPOSITORY_LOCAL}"
 echo "$RESTIC_ARGS" | xargs \
 restic backup --no-scan \
   --files-from "${INCLUDE_FILE}" \
-  --iexclude-file "${EXCLUDE_FILE}" >> ${LOGFILE} 2>&1
+  --iexclude-file "${EXCLUDE_FILE_LOCAL}" >> ${LOGFILE} 2>&1
 
 errtmp=$?
 ERR=$(($ERR + $errtmp))
@@ -81,11 +82,11 @@ printf "\nCreate Restic snapshot - local...done!\n" >> ${LOGFILE}
 
 # Create restic snapshot - Azure
 printf "\nCreate Restic snapshot - Azure...\n" >> ${LOGFILE}
-export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_AZURE}"
+export RESTIC_REPOSITORY="${RESTIC_REPOSITORY_AZURE}"
 echo "$RESTIC_ARGS" | xargs \
 restic backup --no-scan \
   --files-from "${INCLUDE_FILE}" \
-  --iexclude-file "${EXCLUDE_FILE}" >> ${LOGFILE} 2>&1
+  --iexclude-file "${EXCLUDE_FILE_AZURE}" >> ${LOGFILE} 2>&1
 
 errtmp=$?
 ERR=$(($ERR + $errtmp))
@@ -113,7 +114,7 @@ printf "\nCleanup temp dir...done!\n" >> ${LOGFILE}
 # Cleanup restic repos
 # local
 printf "\nForget no longer needed Restic snapshots - local...\n" >> ${LOGFILE}
-export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_LOCAL}"
+export RESTIC_REPOSITORY="${RESTIC_REPOSITORY_LOCAL}"
 echo "$FORGET_POLICY" "$RESTIC_ARGS"  | xargs \
 restic forget >> ${LOGFILE} 2>&1
 
@@ -124,7 +125,7 @@ printf "\nForget no longer needed Restic snapshots - local...done!\n" >> ${LOGFI
 
 # Azure
 printf "\nForget no longer needed Restic snapshots - Azure...\n" >> ${LOGFILE}
-export RESTIC_REPOSITORY="${NEXTCLOUD_RESTIC_REPO_AZURE}"
+export RESTIC_REPOSITORY="${RESTIC_REPOSITORY_AZURE}"
 echo "$FORGET_POLICY" "$RESTIC_ARGS"  | xargs \
 restic forget >> ${LOGFILE} 2>&1
 

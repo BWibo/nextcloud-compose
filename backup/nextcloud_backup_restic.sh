@@ -10,7 +10,8 @@ LOGFILE="${NEXTCLOUD_BACKUP_LOGFILE:-/home/me/nextcloud-backup-restic.log}"
 BACKUPDIR_DB_TEMP="${NEXTCLOUD_BACKUPDIR_TEMP:-/tmp/nextcloud/backup}"
 
 # Restic setings
-INCLUDE_FILE="${NEXTCLOUD_RESTIC_INCLUDE_FILE:-/nextcloud/backup/include.txt}"
+INCLUDE_FILE_LOCAL="${NEXTCLOUD_RESTIC_INCLUDE_FILE_LOCAL:-/nextcloud/backup/include_local.txt}"
+INCLUDE_FILE_AZURE="${NEXTCLOUD_RESTIC_INCLUDE_FILE_AZURE:-/nextcloud/backup/include_azure.txt}"
 EXCLUDE_FILE_LOCAL="${NEXTCLOUD_RESTIC_EXCLUDE_FILE_LOCAL:-/nextcloud/backup/exclude_local.txt}"
 EXCLUDE_FILE_AZURE="${NEXTCLOUD_RESTIC_EXCLUDE_FILE_AZURE:-/nextcloud/backup/exclude_azure.txt}"
 export RESTIC_PASSWORD="${NEXTCLOUD_RESTIC_PASSWORD:-changeMe}"
@@ -72,7 +73,7 @@ printf "\nCreate Restic snapshot - local...\n" >> ${LOGFILE}
 export RESTIC_REPOSITORY="${RESTIC_REPOSITORY_LOCAL}"
 echo "$RESTIC_ARGS" | xargs \
 restic backup --no-scan \
-  --files-from "${INCLUDE_FILE}" \
+  --files-from "${INCLUDE_FILE_LOCAL}" \
   --iexclude-file "${EXCLUDE_FILE_LOCAL}" >> ${LOGFILE} 2>&1
 
 errtmp=$?
@@ -85,7 +86,7 @@ printf "\nCreate Restic snapshot - Azure...\n" >> ${LOGFILE}
 export RESTIC_REPOSITORY="${RESTIC_REPOSITORY_AZURE}"
 echo "$RESTIC_ARGS" | xargs \
 restic backup --no-scan \
-  --files-from "${INCLUDE_FILE}" \
+  --files-from "${INCLUDE_FILE_AZURE}" \
   --iexclude-file "${EXCLUDE_FILE_AZURE}" >> ${LOGFILE} 2>&1
 
 errtmp=$?

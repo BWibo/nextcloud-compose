@@ -23,7 +23,8 @@ NEXTCLOUD_BACKUP_LOGFILE="/home/me/nextcloud-backup-restic.log"
 NEXTCLOUD_BACKUPDIR_TEMP="/tmp/nextcloud_backup/db"
 
 # Restic settings
-NEXTCLOUD_RESTIC_INCLUDE_FILE="/nextcloud/backup/include.txt"
+NEXTCLOUD_RESTIC_INCLUDE_FILE_LOCAL="/nextcloud/backup/include_local.txt"
+NEXTCLOUD_RESTIC_INCLUDE_FILE_AZURE="/nextcloud/backup/include_azure.txt"
 NEXTCLOUD_RESTIC_EXCLUDE_FILE_LOCAL="/nextcloud/backup/exclude_local.txt"
 NEXTCLOUD_RESTIC_EXCLUDE_FILE_AZURE="/nextcloud/backup/exclude_azure.txt"
 NEXTCLOUD_RESTIC_PASSWORD="changeMe"

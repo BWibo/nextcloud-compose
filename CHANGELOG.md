@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Split the restic backup exclude list into separate files for the local and Azure targets (`backup/exclude_local.txt`, `backup/exclude_azure.txt`), configured via the new `NEXTCLOUD_RESTIC_EXCLUDE_FILE_LOCAL` and `NEXTCLOUD_RESTIC_EXCLUDE_FILE_AZURE` environment variables, replacing the shared `backup/exclude.txt` and `NEXTCLOUD_RESTIC_EXCLUDE_FILE`.
+- Split the restic backup include list into separate files for the local and Azure targets (`backup/include_local.txt`, `backup/include_azure.txt`), configured via the new `NEXTCLOUD_RESTIC_INCLUDE_FILE_LOCAL` and `NEXTCLOUD_RESTIC_INCLUDE_FILE_AZURE` environment variables, replacing the shared `backup/include.txt` and `NEXTCLOUD_RESTIC_INCLUDE_FILE`.
 
 ### Fixed
 

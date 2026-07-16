@@ -33,7 +33,8 @@ A Docker Compose stack to run a self-hosted Nextcloud. There is no application s
 
 # Run an occ command inside the running app container
 docker exec -i --user 33 nextcloud-app-1 ./occ <command>
-# Example: regenerate previews (also wired up as pre-gen.sh for cron)
+# Example: manually process the preview generation queue (normally drained
+# every 5 min by the previewgenerator app's built-in background job via cron)
 docker exec -i --user 33 nextcloud-app-1 ./occ preview:pre-generate -vv
 ```
 
@@ -73,7 +74,7 @@ Nextcloud accepts config via three channels, all wired up here:
 Defined in a separate `imaginary.yml` compose file because it's intended to be deployed as a Swarm stack on its own (`endpoint_mode: vip`, multiple replicas). To enable: deploy that stack, uncomment the `img` external network in `docker-compose.yml`, uncomment the `img` network on `app` and `cron`, and uncomment `NC_preview_imaginary_url` in `nextcloud.env`.
 
 ### Backups
-`backup/*.sh` are **host-side** scripts (run from root crontab, not from compose). They `docker exec` into `nextcloud-app-1` to toggle maintenance mode and dump the DB, then run `restic` against either local disk or Azure Blob storage. Container name `nextcloud-app-1` is hard-coded in these scripts and in `pre-gen.sh` — it depends on the compose project name being `nextcloud` (set via `name:` at the top of `docker-compose.yml`).
+`backup/*.sh` are **host-side** scripts (run from root crontab, not from compose). They `docker exec` into `nextcloud-app-1` to toggle maintenance mode and dump the DB, then run `restic` against either local disk or Azure Blob storage. Container name `nextcloud-app-1` is hard-coded in these scripts — it depends on the compose project name being `nextcloud` (set via `name:` at the top of `docker-compose.yml`).
 
 ## Conventions to keep
 

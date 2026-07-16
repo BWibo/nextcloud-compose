@@ -11,3 +11,6 @@ data/*
 !data/config
 !data/themes
 !data/custom_apps
+
+# Image previews
+data/appdata_*/preview

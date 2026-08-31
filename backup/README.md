@@ -3,13 +3,20 @@
 * Backup to a local HDD
 * Backup to Azure Blog storage
 
-## Backup every night a 04:00
+## Backup every night at 05:00
 
-Add this to `sudo crontab -e`. Root is required!
+Add this to `crontab -e`. The job logs to the systemd journal via `logger` (collected
+by the observability stack, which alerts on failed/missing runs) and keeps the local
+log file via `tee`; `LOGFILE=/dev/stdout` redirects the script's internal `>>` appends
+into the pipe:
 
 ```text
-0 4 * * * /home/me/nextcloud-compose/nextcloud-backup-restic.sh >/dev/null 2>&1
+0 5 * * * NEXTCLOUD_BACKUP_LOGFILE=/dev/stdout /home/<user>/nextcloud/backup/nextcloud_backup_restic.sh 2>&1 | tee -a /home/<user>/nextcloud-backup-restic.log | logger -t nextcloud-backup
+0 3 1 * * NEXTCLOUD_BACKUP_LOGFILE=/dev/stdout /home/<user>/nextcloud/backup/nextcloud_backup_restic_prune.sh 2>&1 | tee -a /home/<user>/nextcloud-backup-restic.log | logger -t nextcloud-prune
 ```
+
+The `logger -t` tags (`nextcloud-backup`, `nextcloud-prune`) are matched by the
+`backup_alerts` Loki rules in the home-monitoring-stack repo — keep them in sync.
 
 ## Env
 

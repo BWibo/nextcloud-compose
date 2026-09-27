@@ -88,7 +88,12 @@ services:
     networks:
       - net
     volumes:
-      - nextcloud_db_data:/var/lib/postgresql/data
+      # Postgres 18+ images declare VOLUME /var/lib/postgresql and default
+      # PGDATA to /var/lib/postgresql/<major>/docker (to allow side-by-side
+      # data dirs for pg_upgrade). Mounting the old /var/lib/postgresql/data
+      # path would silently initdb into an anonymous volume — keep the mount
+      # at /var/lib/postgresql. See docker-library/postgres#1370.
+      - nextcloud_db_data:/var/lib/postgresql
     # ports:
     #  - 5432:5432
     healthcheck:

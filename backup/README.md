@@ -3,6 +3,33 @@
 * Backup to a local HDD
 * Backup to Azure Blog storage
 
+## Cold volume backup (volume_backup.sh)
+
+`volume_backup.sh` tars named Docker volumes to compressed archives. It is a
+one-shot safety net for destructive maintenance — e.g. before recreating
+`nextcloud_db_data` for a Postgres major upgrade (see "Database migration" in
+the top-level README) — not a replacement for the restic backups.
+
+The script refuses to back up a volume that is used by a running container
+(a hot tar of a live Postgres data dir is inconsistent), so stop the stack
+first with `docker compose down`.
+
+```bash
+# Default: backs up nextcloud_db_data to $NEXTCLOUD_VOLUME_BACKUP_DIR
+NEXTCLOUD_VOLUME_BACKUP_DIR=/media/myhdd/volume-backups ./volume_backup.sh
+
+# Or name the volumes explicitly
+./volume_backup.sh nextcloud_db_data nextcloud_caddy_data
+```
+
+Restore into a fresh volume:
+
+```bash
+docker volume create <volume>
+docker run --rm -v <volume>:/target -v /media/myhdd/volume-backups:/backup \
+  alpine tar -xzf /backup/<archive>.tar.gz -C /target
+```
+
 ## Backup every night at 05:00
 
 Add this to `crontab -e`. The job logs to the systemd journal via `logger` (collected

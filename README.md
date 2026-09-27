@@ -110,7 +110,7 @@ PHP_MEMORY_LIMIT=1024M
 PHP_UPLOAD_LIMIT=16G
 
 # DB
-POSTGRES_VERSION=16-alpine
+POSTGRES_VERSION=18-alpine
 POSTGRES_DB=nextcloud           # Change username and password!!
 POSTGRES_USER=nextcloud
 POSTGRES_PASSWORD=changeMe
@@ -127,6 +127,148 @@ docker compose up -d --build
 ```
 
 Your instance will be available after a couple of seconds unter https://localhost or https://DOMAIN, as specified in `.env`.
+
+## :arrows_counterclockwise: Database migration
+
+Postgres major-version upgrades (e.g. 16 → 18) cannot reuse the old data
+directory — the cluster has to be dumped, the volume recreated, and the dump
+restored into the new version. The steps below are generic; substitute the
+new version for `18` where needed.
+
+> **Note (Postgres 18+ image change):** the official image now declares
+> `VOLUME /var/lib/postgresql` and defaults `PGDATA` to
+> `/var/lib/postgresql/<major>/docker` (to allow side-by-side data dirs for
+> `pg_upgrade`). The old `/var/lib/postgresql/data` mount would silently
+> `initdb` into an anonymous volume. `docker-compose.yml` in this repo already
+> mounts `nextcloud_db_data:/var/lib/postgresql` — don't change it back.
+> See [docker-library/postgres#1370](https://github.com/docker-library/postgres/issues/1370).
+
+Preparation: pick a time outside the nightly restic backup window, make sure
+there is enough free disk space for the dump and the volume tar, and export
+the DB password from `.env` for the commands below:
+
+```bash
+export POSTGRES_PASSWORD=<value from .env>
+DUMPDIR=/media/myhdd/pg-upgrade   # any host folder with enough space
+```
+
+1. **Pre-flight checks** — instance healthy, current version, DB size:
+
+    ```bash
+    docker exec -i --user 33 nextcloud-app-1 ./occ status
+    docker exec nextcloud-db-1 postgres --version
+    docker exec nextcloud-db-1 psql -U nextcloud -c "SELECT pg_size_pretty(pg_database_size('nextcloud'));"
+    ```
+
+2. **Enable maintenance mode** — no writes during the dump:
+
+    ```bash
+    docker exec -i --user 33 nextcloud-app-1 ./occ maintenance:mode --on
+    ```
+
+3. **Logical dump** with the *new* version's client (dumping an older server
+   with a newer `pg_dump` is supported):
+
+    ```bash
+    mkdir -p "$DUMPDIR"
+    docker run -i --rm --network nextcloud_net \
+      -v "$DUMPDIR":/data \
+      -e PGPASSWORD="$POSTGRES_PASSWORD" \
+      --entrypoint pg_dump postgres:18-alpine \
+      -h db -U nextcloud -d nextcloud -F c -f /data/nextcloud-pre18.dump
+    ```
+
+4. **Stop the stack** (volumes are external and survive this):
+
+    ```bash
+    docker compose down
+    ```
+
+5. **Cold volume backup** as an extra safety net besides the dump and the
+   restic snapshots (see `backup/README.md`):
+
+    ```bash
+    NEXTCLOUD_VOLUME_BACKUP_DIR=/media/myhdd/volume-backups ./backup/volume_backup.sh nextcloud_db_data
+    ```
+
+    Verify the archive exists and has a plausible size before continuing.
+
+6. **Update versions** — pull the repo changes and set the new version in
+   `.env` (gitignored, edit manually):
+
+    ```bash
+    git pull
+    # .env: POSTGRES_VERSION=18-alpine
+    ```
+
+7. **Recreate the DB volume** (safe: dump + tar + restic all exist):
+
+    ```bash
+    docker volume rm nextcloud_db_data
+    docker volume create nextcloud_db_data
+    ```
+
+8. **Start only the db** and wait until healthy — the fresh `initdb` creates
+   the role and an empty `nextcloud` database from the `POSTGRES_*` env vars:
+
+    ```bash
+    docker compose up -d db
+    watch docker compose ps db   # wait for "healthy"
+    ```
+
+9. **Restore the dump**:
+
+    ```bash
+    docker run -i --rm --network nextcloud_net \
+      -v "$DUMPDIR":/data \
+      -e PGPASSWORD="$POSTGRES_PASSWORD" \
+      --entrypoint pg_restore postgres:18-alpine \
+      -h db -U nextcloud -d nextcloud --no-owner -j 4 /data/nextcloud-pre18.dump
+    ```
+
+10. **Start the full stack** and disable maintenance mode (the flag lives in
+    `config.php` on `nextcloud_data`, so it survived):
+
+    ```bash
+    ./update.sh
+    docker exec -i --user 33 nextcloud-app-1 ./occ maintenance:mode --off
+    ```
+
+11. **Verify**:
+
+    ```bash
+    docker exec nextcloud-db-1 psql -U nextcloud -c "SELECT version();"
+    docker exec -i --user 33 nextcloud-app-1 ./occ status
+    ```
+
+    Then log in via the web UI, check Administration → Overview for DB
+    warnings, and upload/download a file. The next morning, check that the
+    restic backup ran clean against the new version.
+
+12. **Optional:** a freshly restored cluster has no planner statistics — run
+    `ANALYZE` once:
+
+    ```bash
+    docker exec nextcloud-db-1 psql -U nextcloud -c 'ANALYZE;'
+    ```
+
+### Rollback
+
+If anything fails before the instance is verified, go back to the old version:
+
+```bash
+docker compose down
+# .env: revert POSTGRES_VERSION to the old value
+# git: check out the matching docker-compose.yml (volume mount!) if it changed
+
+docker volume rm nextcloud_db_data
+docker volume create nextcloud_db_data
+docker run --rm -v nextcloud_db_data:/target -v /media/myhdd/volume-backups:/backup \
+  alpine tar -xzf /backup/nextcloud_db_data_<timestamp>.tar.gz -C /target
+
+docker compose up -d
+docker exec -i --user 33 nextcloud-app-1 ./occ maintenance:mode --off
+```
 
 ## :chart_with_upwards_trend: Imaginary support
 

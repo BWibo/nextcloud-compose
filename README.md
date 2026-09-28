@@ -143,14 +143,29 @@ new version for `18` where needed.
 > mounts `nextcloud_db_data:/var/lib/postgresql` — don't change it back.
 > See [docker-library/postgres#1370](https://github.com/docker-library/postgres/issues/1370).
 
-Preparation: pick a time outside the nightly restic backup window, make sure
-there is enough free disk space for the dump and the volume tar, and export
-the DB password from `.env` for the commands below:
+> **Note (DB role):** Nextcloud does **not** connect as the bootstrap
+> `POSTGRES_USER` — at install time it created its own role (typically
+> `oc_<adminuser>`, e.g. `oc_admin`) with a generated password, stored in
+> `config.php` as `dbuser` / `dbpassword`. The restore below must run **as
+> that role** so it owns all restored objects; otherwise the app fails with
+> `Role "oc_admin" does not exist` after the migration.
+
+Preparation: pick a time outside the nightly restic backup window and make
+sure there is enough free disk space for the dump and the volume tar. Read
+the credentials Nextcloud actually uses from `config.php`, then export them
+for the commands below:
 
 ```bash
-export POSTGRES_PASSWORD=<value from .env>
+docker exec --user 33 nextcloud-app-1 grep -E "'db" /var/www/html/config/config.php
+
+export POSTGRES_PASSWORD=<value from .env>          # bootstrap superuser
+export NC_DBUSER=<dbuser from config.php>           # e.g. oc_admin
+export NC_DBPASSWORD=<dbpassword from config.php>
 DUMPDIR=/media/myhdd/pg-upgrade   # any host folder with enough space
 ```
+
+If `dbname` in `config.php` is not `nextcloud`, substitute it accordingly
+below.
 
 1. **Pre-flight checks** — instance healthy, current version, DB size:
 
@@ -209,24 +224,43 @@ DUMPDIR=/media/myhdd/pg-upgrade   # any host folder with enough space
     ```
 
 8. **Start only the db** and wait until healthy — the fresh `initdb` creates
-   the role and an empty `nextcloud` database from the `POSTGRES_*` env vars:
+   only the bootstrap superuser and an empty `nextcloud` database from the
+   `POSTGRES_*` env vars, **not** the app role from `config.php`:
 
     ```bash
     docker compose up -d db
     watch docker compose ps db   # wait for "healthy"
     ```
 
-9. **Restore the dump**:
+9. **Recreate the app role and its database** (as the bootstrap superuser;
+   drop the DB *before* creating the role, so nothing can connect and block
+   the drop):
+
+    ```bash
+    docker exec -it nextcloud-db-1 psql -U nextcloud -d postgres -c "DROP DATABASE nextcloud;"
+    docker exec -it nextcloud-db-1 psql -U nextcloud -d postgres -c "CREATE ROLE $NC_DBUSER LOGIN PASSWORD '$NC_DBPASSWORD';"
+    docker exec -it nextcloud-db-1 psql -U nextcloud -d postgres -c "CREATE DATABASE nextcloud OWNER $NC_DBUSER;"
+    ```
+
+    Since Postgres 15 the `public` schema belongs to the database owner, so
+    owning the database is all the app role needs.
+
+10. **Restore the dump, connecting as the app role.** With `--no-owner`,
+    restored objects are owned by the connecting role — which is what we
+    want, since Nextcloud's migrations must own its tables:
 
     ```bash
     docker run -i --rm --network nextcloud_net \
       -v "$DUMPDIR":/data \
-      -e PGPASSWORD="$POSTGRES_PASSWORD" \
+      -e PGPASSWORD="$NC_DBPASSWORD" \
       --entrypoint pg_restore postgres:18-alpine \
-      -h db -U nextcloud -d nextcloud --no-owner -j 4 /data/nextcloud-pre18.dump
+      -h db -U "$NC_DBUSER" -d nextcloud --no-owner -j 4 /data/nextcloud-pre18.dump
     ```
 
-10. **Start the full stack** and disable maintenance mode (the flag lives in
+    A few warnings like `COMMENT ON EXTENSION` or "already exists" are
+    harmless; errors on tables or data are not.
+
+11. **Start the full stack** and disable maintenance mode (the flag lives in
     `config.php` on `nextcloud_data`, so it survived):
 
     ```bash
@@ -234,7 +268,7 @@ DUMPDIR=/media/myhdd/pg-upgrade   # any host folder with enough space
     docker exec -i --user 33 nextcloud-app-1 ./occ maintenance:mode --off
     ```
 
-11. **Verify**:
+12. **Verify**:
 
     ```bash
     docker exec nextcloud-db-1 psql -U nextcloud -c "SELECT version();"
@@ -245,7 +279,7 @@ DUMPDIR=/media/myhdd/pg-upgrade   # any host folder with enough space
     warnings, and upload/download a file. The next morning, check that the
     restic backup ran clean against the new version.
 
-12. **Optional:** a freshly restored cluster has no planner statistics — run
+13. **Optional:** a freshly restored cluster has no planner statistics — run
     `ANALYZE` once:
 
     ```bash

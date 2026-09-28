@@ -78,6 +78,7 @@ Defined in a separate `imaginary.yml` compose file because it's intended to be d
 
 ## Conventions to keep
 
+- **No private domains or IPs in the repo — ever.** This repo is public. Never commit real hostnames, domains, email addresses, or infrastructure IPs (LAN, VPN, edge proxies, etc.). Use placeholders instead: `localhost`, `example.com`/`example.org` (RFC 2606) for domains; the documentation ranges `192.0.2.0/24`, `198.51.100.0/24`, `203.0.113.0/24` (RFC 5737) for IPv4 and `2001:db8::/32` (RFC 3849) for IPv6. The stack's docker bridge defaults (`172.20.0.0/24`, `172.20.0.10`, `fd20:20::/64`, `fd20:20::10`) are fine — they are generic RFC 1918/ULA values that ship as defaults, not real infrastructure. Site-specific values belong in untracked files (`.env`) or get substituted locally at the `# REPLACE` markers.
 - Every variable referenced in `docker-compose.yml` uses the `${VAR:?VAR not set}` form. Preserve this when adding new env vars — it makes misconfiguration fail loudly at `compose up` time instead of silently at runtime.
 - Version pinning lives **only** in `.env` (`NEXTCLOUD_VERSION`, `POSTGRES_VERSION`). `caddy:alpine` and `redis:alpine` float on purpose with `pull_policy: always`.
 - `nextcloud/Dockerfile` is built `no_cache: true` so apt-get pulls the latest `ffmpeg` on every rebuild.

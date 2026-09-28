@@ -2,6 +2,7 @@
 /tmp/nextcloud/backup/
 
 # Nextcloud app/compose folder
+# REPLACE: path to your compose/app directory on the host.
 /mnt/<backup-disk>/nextcloud/
 
 # Nextcloud data folder, if not inside app/compose dir

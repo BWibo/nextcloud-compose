@@ -8,6 +8,8 @@ set -euo pipefail
 occ() { php /var/www/html/occ "$@"; }
 
 # One domain per line, in the desired index order (index 0 = localhost).
+# REPLACE: substitute your real domains locally before use — never commit real
+# domains here (repo convention: placeholders only, see CLAUDE.md).
 domains=(
   localhost
   cloud.example.com

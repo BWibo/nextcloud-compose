@@ -49,6 +49,9 @@ services:
     ports:
       - 80:80
       - 443:443
+      # HTTP/3 (QUIC). Caddy advertises it via Alt-Svc, so the UDP port must
+      # be reachable too or clients keep probing before falling back to TCP.
+      - 443:443/udp
     environment:
       TLS_DOMAINS: "${TLS_DOMAINS:?TLS_DOMAINS not set}"
       ADMIN_EMAIL: "${ADMIN_EMAIL:?ADMIN_EMAIL not set}"
@@ -60,6 +63,13 @@ services:
       # Selects which Caddyfile snippet handles per-site access logging.
       # See .env / caddy/Caddyfile for the on/off values.
       CADDY_ACCESS_LOG_SNIPPET: "${CADDY_ACCESS_LOG_SNIPPET:?CADDY_ACCESS_LOG_SNIPPET not set}"
+      # RAM buffer per upload without Content-Length (chunked WebDAV clients).
+      # See .env / caddy/Caddyfile.
+      CADDY_CHUNKED_BODY_BUFFER: "${CADDY_CHUNKED_BODY_BUFFER:?CADDY_CHUNKED_BODY_BUFFER not set}"
+      # Go runtime soft memory limit. Without it Caddy keeps the freed upload
+      # buffers resident for a long time (measured: 2.3 GiB after two 500 MiB
+      # chunked uploads). See .env.
+      GOMEMLIMIT: "${CADDY_GOMEMLIMIT:?CADDY_GOMEMLIMIT not set}"
     networks:
       net:
         ipv4_address: ${CADDY_IP:?CADDY_IP not set}

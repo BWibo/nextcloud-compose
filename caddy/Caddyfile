@@ -79,6 +79,22 @@ HEADERS 200
 	}
 }
 
+# ----------------------------------------------------------------------------
+# FastCGI parameters shared by both php_fastcgi blocks in the site below.
+# ----------------------------------------------------------------------------
+(nextcloud_fastcgi) {
+	# Pretty URLs through the front controller
+	env front_controller_active true
+	# The security headers are set by Caddy (see `header` block); tell Nextcloud
+	# not to send its own copies (checked in lib/OC.php).
+	env modHeadersAvailable true
+}
+
+# ----------------------------------------------------------------------------
+# Site. Translated from the nginx reference configs:
+#   nextcloud/docker .examples/docker-compose/with-nginx-proxy/postgres/fpm/web/nginx.conf
+#   docs.nextcloud.com admin_manual/installation/nginx-root.conf.sample
+# ----------------------------------------------------------------------------
 {$TLS_DOMAINS} {
 	{$CADDY_TLS}
 
@@ -93,23 +109,12 @@ HEADERS 200
 	# Static content
 	root * /var/www/html
 
-	# PHP fast cgi
-	php_fastcgi app:9000 {
-		env front_controller_active true
+	# `immutable` only for assets with a cache-busting `?v=` argument
+	# (nginx: `map $arg_v $asset_immutable`).
+	map {query.v} {asset_immutable} {
+		"" ""
+		default ", immutable"
 	}
-
-	file_server
-
-	# Redirects for DAV apps
-	redir /.well-known/carddav /remote.php/dav/ 301
-	redir /.well-known/caldav /remote.php/dav/ 301
-
-	respond /.well-known/acme-challenge 404
-	respond /.well-known/pki-validation 404
-
-	# redir /.well-known/* /index.php/.well-known/webfinger 301
-	# redir /.well-known/nodeinfo /index.php/.well-known/nodeinfo 301
-	redir /.well-known/* /index.php{uri} 301
 
 	# Headers
 	header {
@@ -117,15 +122,12 @@ HEADERS 200
 		# Otherwise, it is not possible to add browser exception
 		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
 
-		# More security hardening headers
+		# Security headers borrowed from Nextcloud's .htaccess
 		Referrer-Policy "no-referrer"
 		X-Content-Type-Options "nosniff"
-		X-Download-Options "noopen"
 		X-Frame-Options "SAMEORIGIN"
 		X-Permitted-Cross-Domain-Policies "none"
 		X-Robots-Tag "noindex, nofollow"
-		X-XSS-Protection "1; mode=block"
-		# Permissions-Policy "interest-cohort=()"
 
 		# Remove X-Powered-By header, which is an information leak
 		-X-Powered-By
@@ -134,25 +136,52 @@ HEADERS 200
 		Location http:// https://
 	}
 
-	# Cache control
-	@static {
+	# Cache control borrowed from .htaccess: ~6 months for assets (plus
+	# `immutable` when cache-busted, see `map` above), 7 days for fonts.
+	@assets {
 		file
-		path *.css *.js *.svg *.gif
+		path *.css *.js *.mjs *.svg *.gif *.ico *.jpg *.png *.webp *.wasm *.tflite *.map *.ogg *.flac *.mp4 *.webm
 	}
-
-	header @static {
-		Cache-Control "max-age=360"
-	}
+	header @assets Cache-Control "public, max-age=15778463{asset_immutable}"
 
 	@fonts {
-		path /core/fonts
+		file
+		path *.otf *.woff *.woff2
 	}
+	header @fonts Cache-Control "max-age=604800"
 
-	header @fonts {
-		Cache-Control "max-age=604800"
+	# Keep existing assets and robots.txt out of the access log when one is
+	# enabled (nginx: `access_log off` in the static locations). Missing
+	# assets (404) are still logged because the matchers require `file`.
+	log_skip @assets
+	log_skip @fonts
+	log_skip /robots.txt
+
+	# Fast connectivity-check endpoint used by the clients, answered without
+	# php-fpm (.htaccess: `RedirectMatch 204 ^(/index.php)?/204$`).
+	respond /204 204
+	respond /index.php/204 204
+
+	# Microsoft's WebDAV client (DavClnt) probes `/` and has to be sent to the
+	# WebDAV endpoint instead of the login page (.htaccess / nginx rule).
+	@davclnt {
+		path /
+		header User-Agent DavClnt*
 	}
+	redir @davclnt /remote.php/webdav/{http.request.uri.prefixed_query} 302
 
-	# gzip encoding
+	# Only Nextcloud's entry points may be executed directly. Every other *.php
+	# request is routed through the front controller, mirroring the `rewrite`
+	# inside nginx's `location ~ \.php(?:$|/)` (the pretty-URL rule of .htaccess).
+	@php_not_entrypoint {
+		path *.php *.php/*
+		not path_regexp ^/(?:index|remote|public|cron|core/ajax/update|status|ocs/v[12]|updater/.+|ocs-provider/.+|.+/richdocumentscode(_arm64)?/proxy)
+	}
+	rewrite @php_not_entrypoint /index.php{uri}
+
+	# gzip encoding. Types from the nginx reference; `text/*` covers text/css,
+	# text/javascript, text/plain, text/vcard, text/vtt, text/cache-manifest,
+	# text/x-component and text/x-cross-domain-policy.
 	encode {
 		gzip 4
 		minimum_length 256
@@ -166,6 +195,7 @@ HEADERS 200
 			header Content-Type application/rss+xml*
 			header Content-Type application/vnd.geo+json*
 			header Content-Type application/vnd.ms-fontobject*
+			header Content-Type application/wasm*
 			header Content-Type application/x-font-ttf*
 			header Content-Type application/x-web-app-manifest+json*
 			header Content-Type application/xhtml+xml*
@@ -174,44 +204,62 @@ HEADERS 200
 			header Content-Type image/bmp*
 			header Content-Type image/svg+xml*
 			header Content-Type image/x-icon*
-			header Content-Type application/atom+xmlapplication/javascript*
-			# Would this be a good idea?
 			header Content-Type text/*
-			# header Content-Type text/cache-manifest*
-			# header Content-Type text/css*
-			# header Content-Type text/plain*
-			# header Content-Type text/vcard*
-			# header Content-Type text/vnd.rim.location.xloc*
-			# header Content-Type text/vtt*
-			# header Content-Type text/x-component*
-			# header Content-Type text/x-cross-domain-policy*
 		}
 	}
 
-	# .htaccess / data / config / ... shouldn't be accessible from outside
+	# /.well-known service discovery (RFC 8615). A `route` block is needed here:
+	# Caddy evaluates `redir` before `respond` regardless of their position in
+	# the file, so outside a `route` the certificate-validation 404s would never
+	# win over the catch-all redirect.
+	route /.well-known/* {
+		# Redirects for DAV apps
+		redir /.well-known/carddav /remote.php/dav/ 301
+		redir /.well-known/caldav /remote.php/dav/ 301
+
+		# Never hand certificate validation to the front controller. Caddy
+		# answers ACME HTTP-01 for its own certificates before this site block.
+		@cert_validation path /.well-known/acme-challenge* /.well-known/pki-validation*
+		respond @cert_validation 404
+
+		# Everything else (webfinger, nodeinfo, ...) is handled by Nextcloud
+		redir * /index.php{uri} 301
+	}
+
+	# Internal paths must not be reachable from outside (.htaccess / nginx)
 	@forbidden {
-		path /.htaccess
-		path /.user.ini
-		path /.xml
-		path /3rdparty/*
-		path /autotest
-		path /build/*
-		path /config/*
-		path /console
-		path /console.php
-		path /data/*
-		path /db_
-		path /db_structure
-		path /indie
-		path /issue
-		path /lib/*
-		path /occ
-		path /README
-		path /templates/*
-		path /tests/*
+		# internal directories, with and without trailing slash
+		path /build /build/* /tests /tests/* /config /config/* /lib /lib/* /3rdparty /3rdparty/* /templates /templates/* /data /data/*
+		# dotfiles (/.htaccess, /.user.ini, ...; /.well-known is routed above) and prefix rules
+		path /.* /autotest* /occ* /issue* /indie* /db_* /console*
+		# dependency metadata that would otherwise be served as plain files
+		path /composer.json /composer.lock /package.json /package-lock.json /core/shipped.json
 	}
 
 	respond @forbidden 404
 	# not sure if this is 100% safe, but it looks nicer when you hit a 404
 	# rewrite @forbidden '/index.php/error/404'
+
+	# PHP fast cgi.
+	# php-fpm needs CONTENT_LENGTH. Clients that upload with
+	# `Transfer-Encoding: chunked` (macOS Finder, Cyberduck/Mountain Duck,
+	# DAVx5, ...) send none, and Caddy would answer 411 Length Required. Buffer
+	# those bodies, and only those, in RAM so the length becomes known (nginx:
+	# `fastcgi_request_buffering on`). The buffer is memory per concurrent
+	# chunked upload; bodies larger than it still get a 411. Size it via
+	# CADDY_CHUNKED_BODY_BUFFER in .env.
+	@body_without_length {
+		header !Content-Length
+		not method GET HEAD OPTIONS
+	}
+	php_fastcgi @body_without_length app:9000 {
+		import nextcloud_fastcgi
+		request_buffers {$CADDY_CHUNKED_BODY_BUFFER}
+	}
+
+	php_fastcgi app:9000 {
+		import nextcloud_fastcgi
+	}
+
+	file_server
 }

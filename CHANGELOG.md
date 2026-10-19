@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Bumped Nextcloud to 35.0.2 (`NEXTCLOUD_VERSION=35.0.2-fpm` in `.env.example`).
 - Upgraded Postgres to 18 (`POSTGRES_VERSION=18-alpine` in `.env.example`). Existing instances must migrate via dump/restore — see the new "Database migration" section in the README.
 - Moved the `db` service volume mount from `/var/lib/postgresql/data` to `/var/lib/postgresql`: the Postgres 18+ images declare `VOLUME /var/lib/postgresql` and default `PGDATA` to `/var/lib/postgresql/<major>/docker`, so the old mount path would silently `initdb` into an anonymous volume (docker-library/postgres#1370).
 

@@ -77,7 +77,10 @@ services:
     volumes:
       - nextcloud_caddy_data:/data
       - nextcloud_data:/var/www/html:ro
-      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      # Mount the directory, not the file: git pull swaps the Caddyfile for a new
+      # inode, which a single-file bind mount never sees (reload would load the
+      # stale file).
+      - ./caddy:/etc/caddy:ro
       - ./certs:/certs:ro
     logging:
       options:

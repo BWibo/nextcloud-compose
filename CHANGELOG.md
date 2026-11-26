@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Caddy now mounts the `caddy/` directory instead of the single `caddy/Caddyfile` (`./caddy:/etc/caddy:ro`), so `caddy reload` picks up a Caddyfile changed by `git pull`. A single-file bind mount stays pinned to the old inode. Existing deployments need one container recreate: `docker compose up -d --force-recreate caddy`.
 - Disabled OPcache JIT in the Nextcloud image to stop php-fpm workers from crashing with SIGSEGV during app install/upgrade on ARM64 hosts such as the Raspberry Pi 5 (upstream PHP aarch64 JIT bug; see nextcloud/docker#2576).
 - Fixed the backup script ignoring the built-in default restic repository paths when `NEXTCLOUD_RESTIC_REPO_LOCAL` or `NEXTCLOUD_RESTIC_REPO_AZURE` are unset.
 - Caddyfile: `/.well-known/acme-challenge/*` and `/.well-known/pki-validation/*` now return 404 as intended. The `respond ... 404` lines never matched because Caddy evaluates `redir` before `respond`, so these paths were redirected to `/index.php/...`.
